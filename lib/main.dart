@@ -481,6 +481,8 @@ class PausalHome extends StatefulWidget {
   State<PausalHome> createState() => _PausalHomeState();
 }
 
+enum _SheetSyncTarget { entries, clients, profile }
+
 class _PausalHomeState extends State<PausalHome> {
   int _currentIndex = 0;
 
@@ -557,7 +559,7 @@ class _PausalHomeState extends State<PausalHome> {
   GoogleUser? _googleUser;
   bool _isSyncing = false;
   bool _isUploading = false;
-  bool _hasPendingUpload = false;
+  final Set<_SheetSyncTarget> _pendingSyncTargets = <_SheetSyncTarget>{};
 
   @override
   void initState() {
@@ -579,7 +581,7 @@ class _PausalHomeState extends State<PausalHome> {
       _entries.add(entry);
       _entries.sort((a, b) => b.date.compareTo(a.date));
     });
-    _pushDataToSheets();
+    _pushDataToSheets({_SheetSyncTarget.entries});
   }
 
   void _updateEntry(LedgerEntry updated) {
@@ -591,7 +593,7 @@ class _PausalHomeState extends State<PausalHome> {
         _entries.sort((a, b) => b.date.compareTo(a.date));
       }
     });
-    _pushDataToSheets();
+    _pushDataToSheets({_SheetSyncTarget.entries});
   }
 
   void _removeEntry(String id) {
@@ -599,23 +601,36 @@ class _PausalHomeState extends State<PausalHome> {
     setState(() {
       _entries.removeWhere((entry) => entry.id == id);
     });
-    _pushDataToSheets();
+    _pushDataToSheets({_SheetSyncTarget.entries});
   }
 
-  void _updateProfile(TaxProfile profile) {
+  void _updateProfiles({
+    TaxProfile? taxProfile,
+    CompanyProfile? companyProfile,
+  }) {
+    if (taxProfile == null && companyProfile == null) {
+      return;
+    }
     if (!_ensureConnected()) return;
     setState(() {
-      _profile = profile;
+      if (taxProfile != null) {
+        _profile = taxProfile;
+      }
+      if (companyProfile != null) {
+        _companyProfile = companyProfile;
+      }
     });
-    _pushDataToSheets();
+    _pushDataToSheets({_SheetSyncTarget.profile});
   }
 
-  void _updateCompanyProfile(CompanyProfile profile) {
-    if (!_ensureConnected()) return;
-    setState(() {
-      _companyProfile = profile;
-    });
-    _pushDataToSheets();
+  void _updateBothProfiles(
+    TaxProfile taxProfile,
+    CompanyProfile companyProfile,
+  ) {
+    _updateProfiles(
+      taxProfile: taxProfile,
+      companyProfile: companyProfile,
+    );
   }
 
   void _addClient(Client client) {
@@ -624,7 +639,7 @@ class _PausalHomeState extends State<PausalHome> {
       _clients.add(client);
       _clients.sort((a, b) => a.name.compareTo(b.name));
     });
-    _pushDataToSheets();
+    _pushDataToSheets({_SheetSyncTarget.clients});
   }
 
   void _updateClient(Client updated) {
@@ -636,7 +651,7 @@ class _PausalHomeState extends State<PausalHome> {
         _clients.sort((a, b) => a.name.compareTo(b.name));
       }
     });
-    _pushDataToSheets();
+    _pushDataToSheets({_SheetSyncTarget.clients});
   }
 
   void _removeClient(String id) {
@@ -650,28 +665,47 @@ class _PausalHomeState extends State<PausalHome> {
         }
       }
     });
-    _pushDataToSheets();
+    _pushDataToSheets({_SheetSyncTarget.clients, _SheetSyncTarget.entries});
   }
 
-  void _pushDataToSheets() {
+  void _pushDataToSheets(Set<_SheetSyncTarget> targets) {
+    if (targets.isEmpty) {
+      return;
+    }
+    _pendingSyncTargets.addAll(targets);
+    _uploadPendingSheets();
+  }
+
+  void _uploadPendingSheets() {
     final service = _sheetsService;
-    if (service == null) {
+    if (service == null || _pendingSyncTargets.isEmpty || _isUploading) {
       return;
     }
 
-    if (_isUploading) {
-      _hasPendingUpload = true;
-      return;
+    final targetsToUpload = Set<_SheetSyncTarget>.from(_pendingSyncTargets);
+    _pendingSyncTargets.clear();
+    if (mounted) {
+      setState(() {
+        _isUploading = true;
+      });
+    } else {
+      _isUploading = true;
     }
-
-    _isUploading = true;
     Future.microtask(() async {
       try {
         await service.uploadAll(
-          entries: _entries.map((entry) => entry.toJson()).toList(),
-          clients: _clients.map((client) => client.toJson()).toList(),
-          companyProfile: _companyProfile.toJson(),
-          taxProfile: _profile.toJson(),
+          entries: targetsToUpload.contains(_SheetSyncTarget.entries)
+              ? _entries.map((entry) => entry.toJson()).toList()
+              : null,
+          clients: targetsToUpload.contains(_SheetSyncTarget.clients)
+              ? _clients.map((client) => client.toJson()).toList()
+              : null,
+          companyProfile: targetsToUpload.contains(_SheetSyncTarget.profile)
+              ? _companyProfile.toJson()
+              : null,
+          taxProfile: targetsToUpload.contains(_SheetSyncTarget.profile)
+              ? _profile.toJson()
+              : null,
         );
       } catch (error, stack) {
         debugPrint('Google Sheets sync failed: $error');
@@ -684,10 +718,15 @@ class _PausalHomeState extends State<PausalHome> {
           );
         }
       } finally {
-        _isUploading = false;
-        if (_hasPendingUpload) {
-          _hasPendingUpload = false;
-          _pushDataToSheets();
+        if (mounted) {
+          setState(() {
+            _isUploading = false;
+          });
+        } else {
+          _isUploading = false;
+        }
+        if (_pendingSyncTargets.isNotEmpty) {
+          _uploadPendingSheets();
         }
       }
     });
@@ -1033,7 +1072,9 @@ class _PausalHomeState extends State<PausalHome> {
         clientsSheet: clientsSheet,
         profileSheet: profileSheet,
       );
-      _pushDataToSheets();
+      if (config.createNew) {
+        _pushDataToSheets(_SheetSyncTarget.values.toSet());
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -1237,6 +1278,7 @@ class _PausalHomeState extends State<PausalHome> {
     final mediaQuery = MediaQuery.of(context);
     final isWideLayout = mediaQuery.size.width >= 900;
     final isRailExtended = mediaQuery.size.width >= 1200;
+    final theme = Theme.of(context);
 
     final screens = _isConnected
         ? [
@@ -1263,9 +1305,8 @@ class _PausalHomeState extends State<PausalHome> {
             ),
             SettingsTab(
               taxProfile: _profile,
-              onTaxProfileChanged: _updateProfile,
               companyProfile: _companyProfile,
-              onCompanyProfileChanged: _updateCompanyProfile,
+              onProfilesChanged: _updateBothProfiles,
               isConnected: true,
               isSyncing: _isSyncing || _isConnecting,
               spreadsheetId: _spreadsheetId,
@@ -1292,9 +1333,8 @@ class _PausalHomeState extends State<PausalHome> {
             ),
             SettingsTab(
               taxProfile: _profile,
-              onTaxProfileChanged: _updateProfile,
               companyProfile: _companyProfile,
-              onCompanyProfileChanged: _updateCompanyProfile,
+              onProfilesChanged: _updateBothProfiles,
               isConnected: false,
               isSyncing: _isSyncing || _isConnecting,
               spreadsheetId: _spreadsheetId,
@@ -1324,7 +1364,7 @@ class _PausalHomeState extends State<PausalHome> {
       }
     }
 
-    return Scaffold(
+    final scaffold = Scaffold(
       body: isWideLayout
           ? Row(
               children: [
@@ -1404,6 +1444,59 @@ class _PausalHomeState extends State<PausalHome> {
       floatingActionButtonLocation: isWideLayout
           ? FloatingActionButtonLocation.endFloat
           : FloatingActionButtonLocation.centerFloat,
+    );
+
+    return Stack(
+      children: [
+        scaffold,
+        if (_isUploading)
+          Positioned.fill(
+            child: AbsorbPointer(
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.35),
+                alignment: Alignment.center,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 20,
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 24,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Snimam podatke u Google Sheets…',
+                          style: theme.textTheme.titleMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Molimo sačekajte dok se sinhronizacija ne završi.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -2481,9 +2574,8 @@ class SettingsTab extends StatelessWidget {
   const SettingsTab({
     super.key,
     required this.taxProfile,
-    required this.onTaxProfileChanged,
     required this.companyProfile,
-    required this.onCompanyProfileChanged,
+    required this.onProfilesChanged,
     required this.isConnected,
     required this.isSyncing,
     required this.spreadsheetId,
@@ -2496,9 +2588,9 @@ class SettingsTab extends StatelessWidget {
   });
 
   final TaxProfile taxProfile;
-  final void Function(TaxProfile profile) onTaxProfileChanged;
   final CompanyProfile companyProfile;
-  final void Function(CompanyProfile profile) onCompanyProfileChanged;
+  final void Function(TaxProfile taxProfile, CompanyProfile companyProfile)
+      onProfilesChanged;
   final bool isConnected;
   final bool isSyncing;
   final String? spreadsheetId;
@@ -2551,9 +2643,8 @@ class SettingsTab extends StatelessWidget {
               opacity: isConnected ? 1 : 0.5,
               child: _ProfileForm(
                 taxProfile: taxProfile,
-                onTaxProfileChanged: onTaxProfileChanged,
                 companyProfile: companyProfile,
-                onCompanyProfileChanged: onCompanyProfileChanged,
+                onProfilesChanged: onProfilesChanged,
               ),
             ),
           ),
@@ -2743,15 +2834,14 @@ class _ConnectSheetPlaceholder extends StatelessWidget {
 class _ProfileForm extends StatefulWidget {
   const _ProfileForm({
     required this.taxProfile,
-    required this.onTaxProfileChanged,
     required this.companyProfile,
-    required this.onCompanyProfileChanged,
+    required this.onProfilesChanged,
   });
 
   final TaxProfile taxProfile;
-  final void Function(TaxProfile profile) onTaxProfileChanged;
   final CompanyProfile companyProfile;
-  final void Function(CompanyProfile profile) onCompanyProfileChanged;
+  final void Function(TaxProfile taxProfile, CompanyProfile companyProfile)
+      onProfilesChanged;
 
   @override
   State<_ProfileForm> createState() => _ProfileFormState();
@@ -2890,8 +2980,7 @@ class _ProfileFormState extends State<_ProfileForm> {
       accountNumber: _companyAccountController.text.trim(),
     );
 
-    widget.onTaxProfileChanged(updatedProfile);
-    widget.onCompanyProfileChanged(updatedCompany);
+    widget.onProfilesChanged(updatedProfile, updatedCompany);
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Podaci sačuvani')));

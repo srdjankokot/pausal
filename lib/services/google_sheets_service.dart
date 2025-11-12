@@ -70,55 +70,70 @@ class GoogleSheetsService {
   }
 
   Future<void> uploadAll({
-    required List<Map<String, dynamic>> entries,
-    required List<Map<String, dynamic>> clients,
-    required Map<String, dynamic> companyProfile,
-    required Map<String, dynamic> taxProfile,
+    List<Map<String, dynamic>>? entries,
+    List<Map<String, dynamic>>? clients,
+    Map<String, dynamic>? companyProfile,
+    Map<String, dynamic>? taxProfile,
   }) async {
+    final shouldSyncEntries = entries != null;
+    final shouldSyncClients = clients != null;
+    final shouldSyncProfiles = companyProfile != null || taxProfile != null;
+
+    if (!shouldSyncEntries && !shouldSyncClients && !shouldSyncProfiles) {
+      return;
+    }
+
     await ensureStructure();
 
-    final expensesValues = entries.map((entry) {
-      final items = entry['items'] as List<dynamic>? ?? const [];
-      final itemsJson = jsonEncode(items);
-      return [
-        entry['id'] ?? '',
-        entry['kind'] ?? '',
-        entry['title'] ?? '',
-        entry['amount'] ?? 0,
-        entry['date'] ?? '',
-        entry['invoiceNumber'] ?? '',
-        entry['note'] ?? '',
-        entry['clientId'] ?? '',
-        itemsJson,
-      ];
-    }).toList();
+    if (shouldSyncEntries) {
+      final expensesValues = entries.map((entry) {
+        final items = entry['items'] as List<dynamic>? ?? const [];
+        final itemsJson = jsonEncode(items);
+        return [
+          entry['id'] ?? '',
+          entry['kind'] ?? '',
+          entry['title'] ?? '',
+          entry['amount'] ?? 0,
+          entry['date'] ?? '',
+          entry['invoiceNumber'] ?? '',
+          entry['note'] ?? '',
+          entry['clientId'] ?? '',
+          itemsJson,
+        ];
+      }).toList();
 
-    final clientsValues = clients.map((client) {
-      return [
-        client['id'] ?? '',
-        client['name'] ?? '',
-        client['pib'] ?? '',
-        client['address'] ?? '',
-      ];
-    }).toList();
+      await _clearSheet(expensesSheet);
+      await _writeRange(expensesSheet, expensesValues);
+    }
 
-    final profileValues = <List<dynamic>>[];
-    companyProfile.forEach((key, value) {
-      profileValues.add(['company', key, value ?? '']);
-    });
-    taxProfile.forEach((key, value) {
-      profileValues.add(['tax', key, value ?? '']);
-    });
+    if (shouldSyncClients) {
+      final clientsValues = clients.map((client) {
+        return [
+          client['id'] ?? '',
+          client['name'] ?? '',
+          client['pib'] ?? '',
+          client['address'] ?? '',
+        ];
+      }).toList();
 
-    await _clearSheet(expensesSheet);
-    await _clearSheet(clientsSheet);
-    await _clearSheet(profileSheet);
+      await _clearSheet(clientsSheet);
+      await _writeRange(clientsSheet, clientsValues);
+    }
 
-    await _writeRange(expensesSheet, expensesValues);
+    if (shouldSyncProfiles) {
+      final profileValues = <List<dynamic>>[];
+      final company = companyProfile ?? const <String, dynamic>{};
+      final tax = taxProfile ?? const <String, dynamic>{};
+      company.forEach((key, value) {
+        profileValues.add(['company', key, value ?? '']);
+      });
+      tax.forEach((key, value) {
+        profileValues.add(['tax', key, value ?? '']);
+      });
 
-    await _writeRange(clientsSheet, clientsValues);
-
-    await _writeRange(profileSheet, profileValues);
+      await _clearSheet(profileSheet);
+      await _writeRange(profileSheet, profileValues);
+    }
   }
 
   Future<void> appendEntry(Map<String, dynamic> entry) async {
