@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Paušal kalkulator pomaže paušalnim preduzetnicima da prate prihode, troškove i porezke obaveze uz direktnu vezu sa Google Sheets dokumentom.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Paušal kalkulator">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>Paušal kalkulator</title>
+  <link rel="manifest" href="manifest.json">
+
+
+
+
+  <meta name="google-signin-client_id"
+        content="97156095733-42r8nl0j9krm0rr4ak8nb66foghu2ssf.apps.googleusercontent.com">
+  <script src="https://apis.google.com/js/api.js" async defer></script>
+  <!-- optional: platform.js loads additional helpers -->
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+
+
+  <!-- The core Firebase JS SDK is always required and must be listed first -->
+  <script src="https://www.gstatic.com/firebasejs/7.15.1/firebase-app.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/7.15.1/firebase-analytics.js"></script>
+
+
+<script>
+    var firebaseConfig = {
+    apiKey: 'AIzaSyAFzyKdqN8_1MCVG4NuL6KtYrr2fZ4lDqY',
+    appId: '1:97156095733:web:ef20069753b44487e72fbc',
+    messagingSenderId: '97156095733',
+    projectId: 'pausalac-3c82e',
+    authDomain: 'pausalac-3c82e.firebaseapp.com',
+    storageBucket: 'pausalac-3c82e.firebasestorage.app',
+    measurementId: 'G-6ZVR0Y3D1N',
+    };
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+  </script>
+
+</head>
+<body>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
