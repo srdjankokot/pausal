@@ -15,9 +15,9 @@ import 'package:share_plus/share_plus.dart';
 import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:google_sign_in_web/google_sign_in_web.dart';
 import 'package:shared_preferences_web/shared_preferences_web.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'firebase_options.dart';
 import 'services/google_auth_service.dart';
+import 'services/google_picker_service.dart';
 import 'services/google_sheets_service.dart';
 import 'storage/sync_metadata_storage.dart';
 
@@ -26,6 +26,10 @@ const Color _pastelBlueDark = Color(0xFF4F6FDB);
 const Color _pastelBlueLight = Color(0xFFE6ECFF);
 const String? kGoogleWebClientId =
     "97156095733-42r8nl0j9krm0rr4ak8nb66foghu2ssf.apps.googleusercontent.com";
+const String kGooglePickerApiKey = String.fromEnvironment(
+  'GOOGLE_PICKER_API_KEY',
+  defaultValue: 'AIzaSyCc2OSeq2OMtoFTCsEwV_ujObWoGbgAUnA',
+);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,14 +43,16 @@ Future<void> main() async {
 
   // FirebaseAnalyticsObserver? analyticsObserver;
   // if (firebaseInitialized) {
-    // final analytics = FirebaseAnalytics.instance;
+  // final analytics = FirebaseAnalytics.instance;
   //   analyticsObserver = FirebaseAnalyticsObserver(analytics: analytics);
   //   unawaited(analytics.logAppOpen());
   // }
 
-  runApp(PausalApp(
-    // analyticsObserver: analyticsObserver,
-  ));
+  runApp(
+    PausalApp(
+      // analyticsObserver: analyticsObserver,
+    ),
+  );
 }
 
 class PausalApp extends StatelessWidget {
@@ -83,24 +89,11 @@ class PausalApp extends StatelessWidget {
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
 
-  static final Uri _privacyPolicyUri =
-      Uri.parse('https://pausal.finaccons.rs/privacy_policy');
-
-  Future<void> _openPrivacyPolicy(BuildContext context) async {
-
-    try {
-      final launched = await launchUrl(
-        _privacyPolicyUri,
-        mode: LaunchMode.platformDefault,
-      );
-      if (!launched && context.mounted) {
-        Navigator.of(context).pushNamed('/privacy_policy');
-      }
-    } catch (_) {
-      if (context.mounted) {
-        Navigator.of(context).pushNamed('/privacy_policy');
-      }
+  void _openPrivacyPolicy(BuildContext context) {
+    if (!context.mounted) {
+      return;
     }
+    Navigator.of(context).pushNamed('/privacy_policy');
   }
 
   @override
@@ -321,11 +314,10 @@ class PrivacyPolicyPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Privacy Policy'),
+        title: const Text('Politika privatnosti'),
         actions: [
           TextButton(
-            onPressed: () =>
-                Navigator.of(context).pushReplacementNamed('/app'),
+            onPressed: () => Navigator.of(context).pushReplacementNamed('/app'),
             style: TextButton.styleFrom(
               foregroundColor: theme.colorScheme.primary,
               textStyle: theme.textTheme.labelLarge,
@@ -344,61 +336,107 @@ class PrivacyPolicyPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Privacy Policy',
+                  'Politika privatnosti – Paušal kalkulator',
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Paušal kalkulator koristi Google Sign-In kako bi vam omogućio pristup vašim Google Sheets dokumentima i sinhronizaciju podataka koje sami unosite.',
+                  'Ova politika privatnosti objašnjava kako Paušal kalkulator koristi i štiti podatke kada se korisnik prijavi putem Google naloga i poveže svoj Google Sheets dokument radi obračuna i praćenja poslovanja.',
                   style: theme.textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 24),
+
+                // 1) Podaci kojima pristupamo
                 const Text(
                   'Podaci kojima pristupamo',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
                 const _LandingBullet(
-                  icon: Icons.table_chart_outlined,
-                  title: 'Google Sheets dokument koji izaberete',
+                  icon: Icons.person_outline,
+                  title: 'Google nalog (openid)',
                   description:
-                      'Aplikacija čita i upisuje podatke o prihodima, troškovima, klijentima i profilima isključivo u fajl koji ste povezali.',
+                      'Koristimo “openid” dozvolu kako bismo vas bezbedno prijavili u aplikaciju i povezali vaš nalog sa jedinstvenim identifikatorom koji dobijamo od Google-a. Ne koristimo i ne čuvamo vašu e-mail adresu za potrebe aplikacije.',
                 ),
                 const _LandingBullet(
-                  icon: Icons.alternate_email,
-                  title: 'Osnovni podaci Google naloga',
+                  icon: Icons.table_chart_outlined,
+                  title: 'Google Drive / Sheets fajl koji izaberete',
                   description:
-                      'Koristimo vašu e-mail adresu kako bismo prikazali kojim nalogom ste prijavljeni i ne delimo je sa trećim stranama.',
+                      'Aplikacija koristi “drive.file” dozvolu kako bi vam omogućila da izaberete konkretan Google Sheets fajl. Paušal kalkulator čita i upisuje podatke isključivo u taj fajl (npr. prihodi, troškovi, klijenti), i nema pristup drugim dokumentima na vašem Google Drive nalogu.',
                 ),
                 const SizedBox(height: 24),
+
+                // 2) Google API dozvole
                 const Text(
-                  'Čuvanje i deljenje podataka',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  'Google API dozvole (scopes)',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Ne prikupljamo, ne skladištimo i ne delimo lične podatke izvan vašeg Google naloga. Sav sadržaj ostaje u okviru Google Sheets dokumenta kojim vi upravljate i možete prekinuti pristup u bilo kom trenutku odjavom.',
+                  'Paušal kalkulator koristi samo minimalne dozvole neophodne za rad aplikacije:\n\n'
+                  '• openid – za bezbednu prijavu korisnika.\n'
+                  '• https://www.googleapis.com/auth/drive.file – za izbor i obradu konkretnih fajlova na Google Drive-u koje sami odaberete.\n\n'
+                  'Ne koristimo sledeće dozvole: “email”, “spreadsheets” niti bilo koje druge osetljive ili ograničene Google API dozvole koje nisu neophodne za funkcionisanje aplikacije.',
                   style: theme.textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 24),
+
+                // 3) Kako koristimo podatke
                 const Text(
-                  'Pitanja i kontakt',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  'Kako koristimo podatke',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Ako imate pitanja o ovoj politici privatnosti ili načinu na koji aplikacija obrađuje podatke, kontaktirajte nas na:',
+                  'Pristup Google nalogu i odabranom Google Sheets dokumentu koristimo isključivo da bismo:\n\n'
+                  '• omogućili prijavu u aplikaciju,\n'
+                  '• pročitali podatke iz odabranog Sheets fajla radi obračuna i prikaza u aplikaciji,\n'
+                  '• upisali nove unose i izmene u taj isti fajl radi ažurnog vođenja evidencije.\n\n'
+                  'Ne koristimo vaše Google podatke za oglašavanje, marketing ili pravljenje korisničkih profila. '
+                  'Ne prodajemo i ne iznajmljujemo vaše podatke trećim stranama i ne koristimo podatke iz Google Drive/Sheets fajlova za obučavanje opštih AI/ML modela.',
+                  style: theme.textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 24),
+
+                // 4) Čuvanje, zaštita i deljenje
+                const Text(
+                  'Čuvanje, zaštita i deljenje podataka',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Sadržaj vaših Google Sheets dokumenata ostaje u okviru vašeg Google naloga. Aplikacija te podatke čita “na zahtev” i, po potrebi, kratkotrajno kešira radi performansi. '
+                  'Takvi podaci se čuvaju najkraće moguće vreme i zaštićeni su odgovarajućim tehničkim merama (HTTPS/TLS, kontrola pristupa itd.).\n\n'
+                  'Podatke ne delimo sa trećim stranama osim sa pouzdanim tehničkim provajderima (npr. hosting), i to isključivo u meri u kojoj je neophodno za rad aplikacije, uz ugovornu obavezu zaštite podataka.',
+                  style: theme.textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 24),
+
+                // 5) Vaša prava i brisanje
+                const Text(
+                  'Vaša prava i brisanje podataka',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Pristup aplikaciji možete opozvati u bilo kom trenutku preko stranice vašeg Google naloga:\n'
+                  'https://myaccount.google.com/permissions\n\n'
+                  'Takođe, možete nam se obratiti ukoliko želite da obrišemo podatke koji se čuvaju u okviru same aplikacije (npr. lokalne konfiguracije). '
+                  'Nakon potvrde identiteta, obrišaćemo ili anonimizovati podatke, osim onih koje smo zakonski obavezni da zadržimo (npr. knjigovodstvena evidencija).',
+                  style: theme.textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 24),
+
+                // 6) Kontakt
+                const Text(
+                  'Pitanja i kontakt',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Ako imate pitanja u vezi sa politikom privatnosti ili načinom na koji aplikacija obrađuje podatke, možete nas kontaktirati na:',
                   style: theme.textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 12),
@@ -410,8 +448,10 @@ class PrivacyPolicyPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
+
+                // 7) Datum
                 Text(
-                  'Last updated: 15.10.2025.',
+                  'Poslednje ažuriranje: 14.11.2025.',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -444,11 +484,7 @@ class _LandingBullet extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            color: theme.colorScheme.primary,
-            size: 28,
-          ),
+          Icon(icon, color: theme.colorScheme.primary, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -461,10 +497,7 @@ class _LandingBullet extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: theme.textTheme.bodyMedium,
-                ),
+                Text(description, style: theme.textTheme.bodyMedium),
               ],
             ),
           ),
@@ -627,10 +660,7 @@ class _PausalHomeState extends State<PausalHome> {
     TaxProfile taxProfile,
     CompanyProfile companyProfile,
   ) {
-    _updateProfiles(
-      taxProfile: taxProfile,
-      companyProfile: companyProfile,
-    );
+    _updateProfiles(taxProfile: taxProfile, companyProfile: companyProfile);
   }
 
   void _addClient(Client client) {
@@ -762,10 +792,10 @@ class _PausalHomeState extends State<PausalHome> {
     _profileSheetName = metadata.profileSheet;
 
     try {
-
-      final user = await _authService
-          .signInSilently()
-          .timeout(const Duration(seconds: 10), onTimeout: () => null);
+      final user = await _authService.signInSilently().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => null,
+      );
       if (user == null) {
         if (mounted) {
           setState(() {
@@ -775,9 +805,10 @@ class _PausalHomeState extends State<PausalHome> {
         return;
       }
 
-      final client = await _authService
-          .getAuthenticatedClient()
-          .timeout(const Duration(seconds: 10), onTimeout: () => null);
+      final client = await _authService.getAuthenticatedClient().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => null,
+      );
       if (client == null) {
         if (mounted) {
           setState(() {
@@ -824,13 +855,13 @@ class _PausalHomeState extends State<PausalHome> {
               ..sort((a, b) => a.name.compareTo(b.name));
         final companyData = remoteProfiles['company'];
         if (companyData != null && companyData.isNotEmpty) {
-          _companyProfile =
-              CompanyProfile.fromJson(Map<String, dynamic>.from(companyData));
+          _companyProfile = CompanyProfile.fromJson(
+            Map<String, dynamic>.from(companyData),
+          );
         }
         final taxData = remoteProfiles['tax'];
         if (taxData != null && taxData.isNotEmpty) {
-          _profile =
-              TaxProfile.fromJson(Map<String, dynamic>.from(taxData));
+          _profile = TaxProfile.fromJson(Map<String, dynamic>.from(taxData));
         }
       });
     } catch (error, stack) {
@@ -982,10 +1013,10 @@ class _PausalHomeState extends State<PausalHome> {
         }
         return;
       }
-
-      final client = await _authService
-          .getAuthenticatedClient()
-          .timeout(const Duration(seconds: 10), onTimeout: () => null);
+      final client = await _authService.getAuthenticatedClient().timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => null,
+      );
       if (client == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1058,8 +1089,9 @@ class _PausalHomeState extends State<PausalHome> {
         _isConnecting = false;
         final companyData = remoteProfiles['company'];
         if (companyData != null && companyData.isNotEmpty) {
-          _companyProfile =
-              CompanyProfile.fromJson(Map<String, dynamic>.from(companyData));
+          _companyProfile = CompanyProfile.fromJson(
+            Map<String, dynamic>.from(companyData),
+          );
         }
         final taxData = remoteProfiles['tax'];
         if (taxData != null && taxData.isNotEmpty) {
@@ -1137,138 +1169,273 @@ class _PausalHomeState extends State<PausalHome> {
     final profileController = TextEditingController(text: _profileSheetName);
     final formKey = GlobalKey<FormState>();
     bool createNew = _spreadsheetId == null || _spreadsheetId!.isEmpty;
+    String? pickedSpreadsheetName =
+        (_spreadsheetId != null && _spreadsheetId!.isNotEmpty)
+        ? _spreadsheetId
+        : null;
+    bool isPickingSpreadsheet = false;
+    var isDialogMounted = true;
 
-    final result = await showDialog<_SpreadsheetConfig>(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            return AlertDialog(
-              title: const Text('Povezivanje sa Google Sheet-om'),
-              content: Form(
-                key: formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SwitchListTile.adaptive(
-                        contentPadding: EdgeInsets.zero,
-                        value: createNew,
-                        title: const Text('Kreiraj novi Google Sheet'),
-                        subtitle: const Text(
-                          'Aplikacija će automatski kreirati dokument i radne listove.',
-                        ),
-                        onChanged: (value) {
-                          setDialogState(() {
-                            createNew = value;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      if (createNew)
-                        TextFormField(
-                          controller: titleController,
-                          decoration: const InputDecoration(
-                            labelText: 'Naziv dokumenta',
-                            hintText: 'Paušal kalkulator',
+    final result =
+        await showDialog<_SpreadsheetConfig>(
+          context: context,
+          builder: (dialogContext) {
+            return StatefulBuilder(
+              builder: (dialogContext, setDialogState) {
+                Future<void> launchPicker() async {
+                  if (!kIsWeb) {
+                    return;
+                  }
+                  if (kGooglePickerApiKey.isEmpty) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Google Picker API ključ nije konfigurisan.',
                           ),
-                          validator: (value) {
-                            if (!createNew) {
-                              return null;
-                            }
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Unesite naziv dokumenta';
-                            }
-                            return null;
-                          },
-                        )
-                      else
-                        TextFormField(
-                          controller: idController,
-                          decoration: const InputDecoration(
-                            labelText: 'Spreadsheet URL ili ID',
-                            hintText: 'https://docs.google.com/... ili 1A2B3C...',
-                          ),
-                          validator: (value) {
-                            if (createNew) {
-                              return null;
-                            }
-                            if (_extractSpreadsheetId(value) == null) {
-                              return 'Unesite pun URL ili ID Google Sheets dokumenta';
-                            }
-                            return null;
-                          },
                         ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: expensesController,
-                        decoration: const InputDecoration(
-                          labelText: 'Sheet za troškove',
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: clientsController,
-                        decoration: const InputDecoration(
-                          labelText: 'Sheet za klijente',
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: profileController,
-                        decoration: const InputDecoration(
-                          labelText: 'Sheet za profil',
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Otkaži'),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    if (formKey.currentState?.validate() != true) {
-                      return;
+                      );
                     }
-                    final expensesSheet = expensesController.text.trim().isEmpty
-                        ? 'Expenses'
-                        : expensesController.text.trim();
-                    final clientsSheet = clientsController.text.trim().isEmpty
-                        ? 'Clients'
-                        : clientsController.text.trim();
-                    final profileSheet = profileController.text.trim().isEmpty
-                        ? 'Profile'
-                        : profileController.text.trim();
-                    final parsedId = _extractSpreadsheetId(idController.text);
-                    final config = createNew
-                        ? _SpreadsheetConfig(
-                            createNew: true,
-                            spreadsheetTitle: titleController.text.trim(),
-                            expensesSheet: expensesSheet,
-                            clientsSheet: clientsSheet,
-                            profileSheet: profileSheet,
-                          )
-                        : _SpreadsheetConfig(
-                            createNew: false,
-                            spreadsheetId: parsedId!,
-                            expensesSheet: expensesSheet,
-                            clientsSheet: clientsSheet,
-                            profileSheet: profileSheet,
-                          );
-                    Navigator.of(dialogContext).pop(config);
-                  },
-                  child: const Text('Poveži'),
-                ),
-              ],
+                    return;
+                  }
+                  final token = await _authService.getActiveAccessToken();
+                  if (token == null) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Greška pri autentifikaciji Google naloga.',
+                          ),
+                        ),
+                      );
+                    }
+                    return;
+                  }
+                  if (!isDialogMounted) {
+                    return;
+                  }
+                  setDialogState(() {
+                    isPickingSpreadsheet = true;
+                  });
+                  final pickerService = GooglePickerService(
+                    apiKey: kGooglePickerApiKey,
+                  );
+                  try {
+                    final selection = await pickerService.pickSpreadsheet(
+                      oauthToken: token,
+                    );
+                    if (selection != null && isDialogMounted) {
+                      setDialogState(() {
+                        pickedSpreadsheetName = selection.name;
+                        idController.text = selection.id;
+                      });
+                    }
+                  } catch (error, stack) {
+                    debugPrint('Failed to open Google Picker: $error');
+                    debugPrint('$stack');
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Nije moguće učitati Google Picker. Pokušajte ponovo.',
+                          ),
+                        ),
+                      );
+                    }
+                  } finally {
+                    if (isDialogMounted) {
+                      setDialogState(() {
+                        isPickingSpreadsheet = false;
+                      });
+                    }
+                  }
+                }
+
+                return AlertDialog(
+                  title: const Text('Povezivanje sa Google Sheet-om'),
+                  content: Form(
+                    key: formKey,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SwitchListTile.adaptive(
+                            contentPadding: EdgeInsets.zero,
+                            value: createNew,
+                            title: const Text('Kreiraj novi Google Sheet'),
+                            subtitle: const Text(
+                              'Aplikacija će automatski kreirati dokument i radne listove.',
+                            ),
+                            onChanged: (value) {
+                              setDialogState(() {
+                                createNew = value;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          if (createNew)
+                            TextFormField(
+                              controller: titleController,
+                              decoration: const InputDecoration(
+                                labelText: 'Naziv dokumenta',
+                                hintText: 'Paušal kalkulator',
+                              ),
+                              validator: (value) {
+                                if (!createNew) {
+                                  return null;
+                                }
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Unesite naziv dokumenta';
+                                }
+                                return null;
+                              },
+                            )
+                          else if (kIsWeb)
+                            TextFormField(
+                              controller: idController,
+                              readOnly: true,
+                              decoration: InputDecoration(
+                                labelText: 'Google Sheet dokument',
+                                hintText: 'Izaberite Google Sheets dokument',
+                                helperText: pickedSpreadsheetName == null
+                                    ? 'Kliknite na ikonu desno kako biste izabrali dokument.'
+                                    : 'Odabrano: $pickedSpreadsheetName',
+                                suffixIcon: IconButton(
+                                  tooltip: 'Izaberi iz Google Drive-a',
+                                  onPressed:
+                                      isPickingSpreadsheet ||
+                                          kGooglePickerApiKey.isEmpty
+                                      ? null
+                                      : () {
+                                          FocusScope.of(
+                                            dialogContext,
+                                          ).unfocus();
+                                          unawaited(launchPicker());
+                                        },
+                                  icon: isPickingSpreadsheet
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Icon(Icons.folder_open),
+                                ),
+                              ),
+                              onTap:
+                                  isPickingSpreadsheet ||
+                                      kGooglePickerApiKey.isEmpty
+                                  ? null
+                                  : () {
+                                      FocusScope.of(dialogContext).unfocus();
+                                      unawaited(launchPicker());
+                                    },
+                              validator: (value) {
+                                if (createNew) {
+                                  return null;
+                                }
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Izaberite Google Sheet dokument';
+                                }
+                                return null;
+                              },
+                            )
+                          else
+                            TextFormField(
+                              controller: idController,
+                              decoration: const InputDecoration(
+                                labelText: 'Spreadsheet URL ili ID',
+                                hintText:
+                                    'https://docs.google.com/... ili 1A2B3C...',
+                              ),
+                              validator: (value) {
+                                if (createNew) {
+                                  return null;
+                                }
+                                if (_extractSpreadsheetId(value) == null) {
+                                  return 'Unesite pun URL ili ID Google Sheets dokumenta';
+                                }
+                                return null;
+                              },
+                            ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: expensesController,
+                            decoration: const InputDecoration(
+                              labelText: 'Sheet za troškove',
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: clientsController,
+                            decoration: const InputDecoration(
+                              labelText: 'Sheet za klijente',
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: profileController,
+                            decoration: const InputDecoration(
+                              labelText: 'Sheet za profil',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('Otkaži'),
+                    ),
+                    FilledButton(
+                      onPressed: () {
+                        if (formKey.currentState?.validate() != true) {
+                          return;
+                        }
+                        final expensesSheet =
+                            expensesController.text.trim().isEmpty
+                            ? 'Expenses'
+                            : expensesController.text.trim();
+                        final clientsSheet =
+                            clientsController.text.trim().isEmpty
+                            ? 'Clients'
+                            : clientsController.text.trim();
+                        final profileSheet =
+                            profileController.text.trim().isEmpty
+                            ? 'Profile'
+                            : profileController.text.trim();
+                        final parsedId = _extractSpreadsheetId(
+                          idController.text,
+                        );
+                        final config = createNew
+                            ? _SpreadsheetConfig(
+                                createNew: true,
+                                spreadsheetTitle: titleController.text.trim(),
+                                expensesSheet: expensesSheet,
+                                clientsSheet: clientsSheet,
+                                profileSheet: profileSheet,
+                              )
+                            : _SpreadsheetConfig(
+                                createNew: false,
+                                spreadsheetId: parsedId!,
+                                expensesSheet: expensesSheet,
+                                clientsSheet: clientsSheet,
+                                profileSheet: profileSheet,
+                              );
+                        Navigator.of(dialogContext).pop(config);
+                      },
+                      child: const Text('Poveži'),
+                    ),
+                  ],
+                );
+              },
             );
           },
-        );
-      },
-    );
+        ).whenComplete(() {
+          isDialogMounted = false;
+        });
 
     return result;
   }
@@ -2087,14 +2254,13 @@ class _LedgerTabState extends State<LedgerTab> {
         _selectedYear == null || entry.date.year == _selectedYear;
     final matchesMonth =
         _selectedMonth == null || entry.date.month == _selectedMonth;
-    final matchesClient = _selectedClientId == null ||
-        entry.clientId == _selectedClientId;
+    final matchesClient =
+        _selectedClientId == null || entry.clientId == _selectedClientId;
     return matchesYear && matchesMonth && matchesClient;
   }
 
   Widget _buildFilterCard(List<LedgerEntry> invoices) {
-    final years = invoices.map((e) => e.date.year).toSet().toList()
-      ..sort();
+    final years = invoices.map((e) => e.date.year).toSet().toList()..sort();
     final months = _availableMonths(invoices, _selectedYear);
     final clientItems = widget.clients
         .map(
@@ -2116,10 +2282,9 @@ class _LedgerTabState extends State<LedgerTab> {
               children: [
                 Text(
                   'Filteri',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 if (_hasActiveFilters)
                   TextButton(
@@ -2229,11 +2394,16 @@ class _LedgerTabState extends State<LedgerTab> {
   }
 
   List<int> _availableMonths(List<LedgerEntry> invoices, int? year) {
-    final filtered = invoices.where((invoice) {
-      if (year == null) return true;
-      return invoice.date.year == year;
-    }).map((invoice) => invoice.date.month).toSet().toList()
-      ..sort();
+    final filtered =
+        invoices
+            .where((invoice) {
+              if (year == null) return true;
+              return invoice.date.year == year;
+            })
+            .map((invoice) => invoice.date.month)
+            .toSet()
+            .toList()
+          ..sort();
     return filtered;
   }
 }
@@ -2267,9 +2437,7 @@ class _LedgerSection extends StatelessWidget {
 
     return Card(
       child: Theme(
-        data: Theme.of(context).copyWith(
-          dividerColor: Colors.transparent,
-        ),
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: ExpansionTile(
@@ -2281,117 +2449,119 @@ class _LedgerSection extends StatelessWidget {
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
-          children: [
-            if (entries.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text('Još uvek nema podataka. Dodajte novu stavku.'),
-              )
-            else
-              ...grouped.entries.map(
-                (entry) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                      child: Text(
-                        entry.key,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Colors.grey[700],
+            children: [
+              if (entries.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('Još uvek nema podataka. Dodajte novu stavku.'),
+                )
+              else
+                ...grouped.entries.map(
+                  (entry) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                        child: Text(
+                          entry.key,
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(color: Colors.grey[700]),
                         ),
                       ),
-                    ),
-                  ...entry.value.map((item) {
-                    final client = findClient(item.clientId);
-                    final detailParts = <String>[];
-                    if (item.isInvoice &&
-                        item.invoiceNumber?.isNotEmpty == true) {
-                      detailParts.add('Faktura ${item.invoiceNumber}');
-                    }
-                    detailParts.add(formatDate(item.date));
-                    if (client != null) {
-                      detailParts.add(client.name);
-                    }
-                      if (item.note?.isNotEmpty == true) {
-                        detailParts.add(item.note!);
-                      }
+                      ...entry.value.map((item) {
+                        final client = findClient(item.clientId);
+                        final detailParts = <String>[];
+                        if (item.isInvoice &&
+                            item.invoiceNumber?.isNotEmpty == true) {
+                          detailParts.add('Faktura ${item.invoiceNumber}');
+                        }
+                        detailParts.add(formatDate(item.date));
+                        if (client != null) {
+                          detailParts.add(client.name);
+                        }
+                        if (item.note?.isNotEmpty == true) {
+                          detailParts.add(item.note!);
+                        }
 
-                      return Dismissible(
-                        key: ValueKey(item.id),
-                        direction: DismissDirection.endToStart,
-                        onDismissed: (_) => onRemove(item.id),
-                        background: Container(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
+                        return Dismissible(
+                          key: ValueKey(item.id),
+                          direction: DismissDirection.endToStart,
+                          onDismissed: (_) => onRemove(item.id),
+                          background: Container(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
+                            alignment: Alignment.centerRight,
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: const Icon(
+                              Icons.delete,
+                              color: Colors.white,
+                            ),
                           ),
-                          alignment: Alignment.centerRight,
-                          decoration: BoxDecoration(
-                            color: Colors.redAccent,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: const Icon(Icons.delete, color: Colors.white),
-                        ),
-                        child: ListTile(
-                          onTap: () => onEdit(item),
-                          title: Text(item.title),
-                          subtitle: Text(detailParts.join('  ·  ')),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                formatCurrency(item.amount),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                          child: ListTile(
+                            onTap: () => onEdit(item),
+                            title: Text(item.title),
+                            subtitle: Text(detailParts.join('  ·  ')),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  formatCurrency(item.amount),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              PopupMenuButton<String>(
-                                tooltip: 'Radnje',
-                                onSelected: (value) async {
-                                  if (value == 'edit') {
-                                    onEdit(item);
-                                  } else if (value == 'delete') {
-                                    onRemove(item.id);
-                                  } else if (value == 'print') {
-                                    await onPrintInvoice(item);
-                                  } else if (value == 'share') {
-                                    await onShareInvoice(item);
-                                  }
-                                },
-                                itemBuilder: (menuContext) => [
-                                  const PopupMenuItem(
-                                    value: 'edit',
-                                    child: Text('Uredi'),
-                                  ),
-                                  if (item.isInvoice)
+                                PopupMenuButton<String>(
+                                  tooltip: 'Radnje',
+                                  onSelected: (value) async {
+                                    if (value == 'edit') {
+                                      onEdit(item);
+                                    } else if (value == 'delete') {
+                                      onRemove(item.id);
+                                    } else if (value == 'print') {
+                                      await onPrintInvoice(item);
+                                    } else if (value == 'share') {
+                                      await onShareInvoice(item);
+                                    }
+                                  },
+                                  itemBuilder: (menuContext) => [
                                     const PopupMenuItem(
-                                      value: 'print',
-                                      child: Text('Štampa'),
+                                      value: 'edit',
+                                      child: Text('Uredi'),
                                     ),
-                                  if (item.isInvoice)
+                                    if (item.isInvoice)
+                                      const PopupMenuItem(
+                                        value: 'print',
+                                        child: Text('Štampa'),
+                                      ),
+                                    if (item.isInvoice)
+                                      const PopupMenuItem(
+                                        value: 'share',
+                                        child: Text('PDF / Pošalji'),
+                                      ),
                                     const PopupMenuItem(
-                                      value: 'share',
-                                      child: Text('PDF / Pošalji'),
+                                      value: 'delete',
+                                      child: Text('Obriši'),
                                     ),
-                                  const PopupMenuItem(
-                                    value: 'delete',
-                                    child: Text('Obriši'),
-                                  ),
-                                ],
-                              ),
-                            ],
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      );
-                    }),
-                  ],
+                        );
+                      }),
+                    ],
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
-    )
     );
   }
 }
@@ -2590,7 +2760,7 @@ class SettingsTab extends StatelessWidget {
   final TaxProfile taxProfile;
   final CompanyProfile companyProfile;
   final void Function(TaxProfile taxProfile, CompanyProfile companyProfile)
-      onProfilesChanged;
+  onProfilesChanged;
   final bool isConnected;
   final bool isSyncing;
   final String? spreadsheetId;
@@ -2841,7 +3011,7 @@ class _ProfileForm extends StatefulWidget {
   final TaxProfile taxProfile;
   final CompanyProfile companyProfile;
   final void Function(TaxProfile taxProfile, CompanyProfile companyProfile)
-      onProfilesChanged;
+  onProfilesChanged;
 
   @override
   State<_ProfileForm> createState() => _ProfileFormState();
@@ -2910,18 +3080,18 @@ class _ProfileFormState extends State<_ProfileForm> {
     super.didUpdateWidget(oldWidget);
     if (widget.taxProfile != oldWidget.taxProfile) {
       _cityController.text = widget.taxProfile.city;
-      _pensionController.text =
-          widget.taxProfile.monthlyPension.toStringAsFixed(0);
-      _healthController.text =
-          widget.taxProfile.monthlyHealth.toStringAsFixed(0);
-      _taxController.text =
-          widget.taxProfile.monthlyTaxPrepayment.toStringAsFixed(0);
-      _limitController.text =
-          widget.taxProfile.annualLimit.toStringAsFixed(0);
-      _rollingLimitController.text =
-          widget.taxProfile.rollingLimit.toStringAsFixed(0);
-      _rateController.text =
-          (widget.taxProfile.additionalTaxRate * 100).toStringAsFixed(1);
+      _pensionController.text = widget.taxProfile.monthlyPension
+          .toStringAsFixed(0);
+      _healthController.text = widget.taxProfile.monthlyHealth.toStringAsFixed(
+        0,
+      );
+      _taxController.text = widget.taxProfile.monthlyTaxPrepayment
+          .toStringAsFixed(0);
+      _limitController.text = widget.taxProfile.annualLimit.toStringAsFixed(0);
+      _rollingLimitController.text = widget.taxProfile.rollingLimit
+          .toStringAsFixed(0);
+      _rateController.text = (widget.taxProfile.additionalTaxRate * 100)
+          .toStringAsFixed(1);
     }
     if (widget.companyProfile != oldWidget.companyProfile) {
       _companyNameController.text = widget.companyProfile.name;
@@ -3002,44 +3172,44 @@ class _ProfileFormState extends State<_ProfileForm> {
             ),
           ),
           const SizedBox(height: 12),
-              TextFormField(
-                controller: _companyNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Naziv firme',
-                  border: OutlineInputBorder(),
-                ),
-                textCapitalization: TextCapitalization.words,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Unesite naziv';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _companyShortNameController,
-                decoration: const InputDecoration(
-                  labelText: 'Skraćeni naziv (opciono)',
-                  border: OutlineInputBorder(),
-                ),
-                textCapitalization: TextCapitalization.words,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _companyResponsibleController,
-                decoration: const InputDecoration(
-                  labelText: 'Odgovorno lice',
-                  border: OutlineInputBorder(),
-                ),
-                textCapitalization: TextCapitalization.words,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _companyPibController,
-                decoration: const InputDecoration(
-                  labelText: 'PIB',
-                  border: OutlineInputBorder(),
+          TextFormField(
+            controller: _companyNameController,
+            decoration: const InputDecoration(
+              labelText: 'Naziv firme',
+              border: OutlineInputBorder(),
+            ),
+            textCapitalization: TextCapitalization.words,
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Unesite naziv';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _companyShortNameController,
+            decoration: const InputDecoration(
+              labelText: 'Skraćeni naziv (opciono)',
+              border: OutlineInputBorder(),
+            ),
+            textCapitalization: TextCapitalization.words,
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _companyResponsibleController,
+            decoration: const InputDecoration(
+              labelText: 'Odgovorno lice',
+              border: OutlineInputBorder(),
+            ),
+            textCapitalization: TextCapitalization.words,
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _companyPibController,
+            decoration: const InputDecoration(
+              labelText: 'PIB',
+              border: OutlineInputBorder(),
             ),
             keyboardType: TextInputType.number,
           ),
@@ -3377,17 +3547,13 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
     });
   }
 
-  void _recalculateInvoiceTotal({
-    bool updateText = false,
-    bool notify = true,
-  }) {
+  void _recalculateInvoiceTotal({bool updateText = false, bool notify = true}) {
     final total = _invoiceItems.fold<double>(
       0,
       (sum, item) => sum + item.total,
     );
     if (updateText) {
-      _amountController.text =
-          total > 0 ? total.toStringAsFixed(2) : '';
+      _amountController.text = total > 0 ? total.toStringAsFixed(2) : '';
     }
     if (notify) {
       setState(() {
@@ -3428,8 +3594,7 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
               final lower = query.toLowerCase();
               return client.name.toLowerCase().contains(lower) ||
                   client.pib.toLowerCase().contains(lower);
-            }).toList()
-              ..sort((a, b) => a.name.compareTo(b.name));
+            }).toList()..sort((a, b) => a.name.compareTo(b.name));
             return SafeArea(
               child: Padding(
                 padding: EdgeInsets.only(
@@ -3474,7 +3639,8 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
                               subtitle: client.pib.isEmpty
                                   ? null
                                   : Text('PIB: ${client.pib}'),
-                              onTap: () => Navigator.of(sheetContext).pop(client),
+                              onTap: () =>
+                                  Navigator.of(sheetContext).pop(client),
                             );
                           },
                         ),
@@ -3516,10 +3682,9 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
           children: [
             Text(
               'Stavke fakture',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             TextButton.icon(
               onPressed: _addInvoiceItem,
@@ -3537,8 +3702,9 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
               index: index,
               data: data,
               onChanged: () => _recalculateInvoiceTotal(updateText: true),
-              onRemove:
-                  _invoiceItems.length > 1 ? () => _removeInvoiceItem(index) : null,
+              onRemove: _invoiceItems.length > 1
+                  ? () => _removeInvoiceItem(index)
+                  : null,
             ),
           );
         }),
@@ -3546,10 +3712,9 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
           alignment: Alignment.centerRight,
           child: Text(
             'Ukupno: ${formatCurrency(_invoiceTotal)}',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
       ],
@@ -3577,15 +3742,14 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
     if (_selectedKind == LedgerKind.invoice) {
       invoiceItems = _invoiceItems
           .map((item) => item.toInvoiceItem())
-          .where((item) =>
-              item.description.trim().isNotEmpty &&
-              item.quantity > 0 &&
-              item.unitPrice > 0)
+          .where(
+            (item) =>
+                item.description.trim().isNotEmpty &&
+                item.quantity > 0 &&
+                item.unitPrice > 0,
+          )
           .toList();
-      amount = invoiceItems.fold<double>(
-        0,
-        (sum, item) => sum + item.total,
-      );
+      amount = invoiceItems.fold<double>(0, (sum, item) => sum + item.total);
       if (invoiceItems.isEmpty || amount <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -3596,15 +3760,16 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
       }
       final numberValue = _invoiceNumberController.text.trim();
       if (numberValue.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unesite broj fakture.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Unesite broj fakture.')));
         return;
       }
       _invoiceNumberAutoFilled = false;
     } else {
-      final parsed =
-          double.tryParse(_amountController.text.replaceAll(',', '.'));
+      final parsed = double.tryParse(
+        _amountController.text.replaceAll(',', '.'),
+      );
       if (parsed == null) {
         return;
       }
@@ -3673,8 +3838,8 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
                       _clientSearchController.clear();
                       if (widget.initialEntry != null &&
                           widget.initialEntry!.kind == LedgerKind.expense) {
-                        _amountController.text =
-                            widget.initialEntry!.amount.toStringAsFixed(2);
+                        _amountController.text = widget.initialEntry!.amount
+                            .toStringAsFixed(2);
                       } else if (!_isEditing) {
                         _amountController.clear();
                       }
@@ -3686,9 +3851,7 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
                       _ensureInvoiceItemsPresent();
                       _refreshClientSearchField();
                       if (!_isEditing ||
-                          (widget.initialEntry?.invoiceNumber
-                                  ?.trim()
-                                  .isEmpty ??
+                          (widget.initialEntry?.invoiceNumber?.trim().isEmpty ??
                               true)) {
                         final suggestion = _suggestInvoiceNumber(_selectedDate);
                         _invoiceNumberController.text = suggestion;
@@ -3696,10 +3859,7 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
                       } else {
                         _invoiceNumberAutoFilled = false;
                       }
-                      _recalculateInvoiceTotal(
-                        updateText: true,
-                        notify: false,
-                      );
+                      _recalculateInvoiceTotal(updateText: true, notify: false);
                     }
                   });
                   if (_selectedKind == LedgerKind.invoice) {
@@ -3878,14 +4038,14 @@ class _InvoiceItemFormData {
     String unit = 'radni sat',
     double quantity = 1,
     double unitPrice = 0,
-  })  : descriptionController = TextEditingController(text: description),
-        unitController = ValueNotifier<String>(unit),
-        quantityController = TextEditingController(text: 
-          quantity > 0 ? _formatNumber(quantity) : '',
-        ),
-        unitPriceController = TextEditingController(text:
-          unitPrice > 0 ? unitPrice.toStringAsFixed(2) : '',
-        );
+  }) : descriptionController = TextEditingController(text: description),
+       unitController = ValueNotifier<String>(unit),
+       quantityController = TextEditingController(
+         text: quantity > 0 ? _formatNumber(quantity) : '',
+       ),
+       unitPriceController = TextEditingController(
+         text: unitPrice > 0 ? unitPrice.toStringAsFixed(2) : '',
+       );
 
   final TextEditingController descriptionController;
   final ValueNotifier<String> unitController;
@@ -3958,8 +4118,9 @@ class _InvoiceItemRow extends StatelessWidget {
               children: [
                 Text(
                   'Stavka ${index + 1}',
-                  style: theme.textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 if (onRemove != null)
                   IconButton(
@@ -4002,10 +4163,7 @@ class _InvoiceItemRow extends StatelessWidget {
                             value: 'radni sat',
                             child: Text('Radni sat'),
                           ),
-                          DropdownMenuItem(
-                            value: 'kom',
-                            child: Text('Komad'),
-                          ),
+                          DropdownMenuItem(value: 'kom', child: Text('Komad')),
                         ],
                         onChanged: (selected) {
                           if (selected == null) return;
@@ -4070,8 +4228,9 @@ class _InvoiceItemRow extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: Text(
                 'Iznos stavke: $totalLabel',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
@@ -4318,8 +4477,8 @@ class LedgerEntry {
         ? parsedItems.fold<double>(0, (sum, item) => sum + item.total)
         : baseAmount;
     final rawInvoiceNumber = json['invoiceNumber'] as String?;
-    final normalizedInvoiceNumber = rawInvoiceNumber != null &&
-            rawInvoiceNumber.trim().isNotEmpty
+    final normalizedInvoiceNumber =
+        rawInvoiceNumber != null && rawInvoiceNumber.trim().isNotEmpty
         ? rawInvoiceNumber.trim()
         : null;
     return LedgerEntry(
@@ -4359,15 +4518,21 @@ class LedgerEntry {
         if (decoded is List) {
           return decoded
               .where((element) => element is Map)
-              .map((element) => InvoiceItem.fromJson(
-                  Map<String, dynamic>.from(element as Map)))
+              .map(
+                (element) => InvoiceItem.fromJson(
+                  Map<String, dynamic>.from(element as Map),
+                ),
+              )
               .toList();
         }
       } else if (raw is List) {
         return raw
             .where((element) => element is Map)
-            .map((element) => InvoiceItem.fromJson(
-                Map<String, dynamic>.from(element as Map)))
+            .map(
+              (element) => InvoiceItem.fromJson(
+                Map<String, dynamic>.from(element as Map),
+              ),
+            )
             .toList();
       }
     } catch (_) {
@@ -4671,21 +4836,21 @@ Future<Uint8List> _buildInvoicePdf(
   final dueDate = formatDate(entry.date.add(const Duration(days: 14)));
   final generatedOn = formatDate(DateTime.now());
   final amountText = formatCurrency(entry.amount);
-  final noteText =
-      entry.note?.trim().isNotEmpty == true ? entry.note!.trim() : '—';
+  final noteText = entry.note?.trim().isNotEmpty == true
+      ? entry.note!.trim()
+      : '—';
   final inferredNumber =
       '${entry.date.month.toString().padLeft(2, '0')}-${entry.date.year}';
-  final invoiceNumber =
-      entry.invoiceNumber?.trim().isNotEmpty == true
-          ? entry.invoiceNumber!.trim()
-          : inferredNumber;
+  final invoiceNumber = entry.invoiceNumber?.trim().isNotEmpty == true
+      ? entry.invoiceNumber!.trim()
+      : inferredNumber;
   // final shortTitle = company.shortName.trim().isNotEmpty
   //     ? company.shortName.trim()
   //     : '';
   // final fullTitle = company.name.trim().isNotEmpty
   //     ? company.name.trim()
   //     : '';
-  
+
   final items = entry.items.isNotEmpty
       ? entry.items
       : [
@@ -4721,31 +4886,29 @@ Future<Uint8List> _buildInvoicePdf(
               children: [
                 pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
+                  children: [
+                    if (company.shortName.isNotEmpty)
+                      pw.Text(
+                        company.shortName,
+                        style: pw.TextStyle(
+                          fontSize: 16,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
 
-                if(company.shortName.isNotEmpty)
-                  pw.Text(
-                    company.shortName,
-                    style: pw.TextStyle(
-                      fontSize: 16,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                  ),
-
-              if(company.name.isNotEmpty)
-                    pw.Text(
-                    company.name,
-                    style: pw.TextStyle(
-                      fontSize: 10
-                    ),
-                  ),
+                    if (company.name.isNotEmpty)
+                      pw.Text(company.name, style: pw.TextStyle(fontSize: 10)),
 
                     if (company.address.isNotEmpty)
-                      pw.Text(company.address,
-                          style: const pw.TextStyle(fontSize: 10)),
-                          
-                     pw.Text(profile.city,
-                        style: const pw.TextStyle(fontSize: 10)),
+                      pw.Text(
+                        company.address,
+                        style: const pw.TextStyle(fontSize: 10),
+                      ),
+
+                    pw.Text(
+                      profile.city,
+                      style: const pw.TextStyle(fontSize: 10),
+                    ),
                   ],
                 ),
                 pw.SizedBox(width: 24),
@@ -4753,13 +4916,16 @@ Future<Uint8List> _buildInvoicePdf(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     if (company.pib.isNotEmpty)
-                      pw.Text('PIB: ${company.pib}',
-                          style: const pw.TextStyle(fontSize: 10)),
-                           if (company.accountNumber.isNotEmpty)
-                      pw.Text('T.R.: ${company.accountNumber}',
-                          style: const pw.TextStyle(fontSize: 10)),
+                      pw.Text(
+                        'PIB: ${company.pib}',
+                        style: const pw.TextStyle(fontSize: 10),
+                      ),
+                    if (company.accountNumber.isNotEmpty)
+                      pw.Text(
+                        'T.R.: ${company.accountNumber}',
+                        style: const pw.TextStyle(fontSize: 10),
+                      ),
 
-     
                     // pw.Text('Datum izrade: $generatedOn',
                     //     style: const pw.TextStyle(fontSize: 10)),
                   ],
@@ -4782,17 +4948,23 @@ Future<Uint8List> _buildInvoicePdf(
                       fontWeight: pw.FontWeight.bold,
                     ),
                   ),
-                  pw.Text('Datum računa: $issueDate',
-                      style: const pw.TextStyle(fontSize: 11)),
-                  pw.Text('Datum dospeća: $dueDate',
-                      style: const pw.TextStyle(fontSize: 11)),
+                  pw.Text(
+                    'Datum računa: $issueDate',
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
+                  pw.Text(
+                    'Datum dospeća: $dueDate',
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
                 ],
               ),
               pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
-                  pw.Text('${profile.city}, ${issueDate}',
-                      style: const pw.TextStyle(fontSize: 11)),
+                  pw.Text(
+                    '${profile.city}, ${issueDate}',
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
                 ],
               ),
             ],
@@ -4806,15 +4978,22 @@ Future<Uint8List> _buildInvoicePdf(
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('Kupac', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                pw.Text(
+                  'Kupac',
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                ),
                 pw.SizedBox(height: 6),
                 pw.Text(client.name, style: const pw.TextStyle(fontSize: 12)),
                 if (client.pib.isNotEmpty)
-                  pw.Text('PIB: ${client.pib}',
-                      style: const pw.TextStyle(fontSize: 11)),
+                  pw.Text(
+                    'PIB: ${client.pib}',
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
                 if (client.address.isNotEmpty)
-                  pw.Text(client.address,
-                      style: const pw.TextStyle(fontSize: 11)),
+                  pw.Text(
+                    client.address,
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
               ],
             ),
           ),
@@ -4851,18 +5030,15 @@ Future<Uint8List> _buildInvoicePdf(
 
                   pw.Padding(
                     padding: const pw.EdgeInsets.all(8),
-                    child:
-                    pw.Container(
+                    child: pw.Container(
                       width: 50,
-                      child:     pw.Text(
-                      'Jedinica mere',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      child: pw.Text(
+                        'Jedinica mere',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
                     ),
-                    )
-                    
-                 
                   ),
-                  
+
                   pw.Padding(
                     padding: const pw.EdgeInsets.all(8),
                     child: pw.Text(
@@ -4887,42 +5063,41 @@ Future<Uint8List> _buildInvoicePdf(
                   ),
                 ],
               ),
-              ...items.asMap().entries.map(
-                (itemEntry) {
-                  final index = itemEntry.key + 1;
-                  final item = itemEntry.value;
-                  final description =
-                      item.description.trim().isEmpty ? '—' : item.description;
-                  return pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(index.toString()),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(description),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(item.unit),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(formatQuantity(item.quantity)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(tableCurrency(item.unitPrice)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(8),
-                        child: pw.Text(tableCurrency(item.total)),
-                      ),
-                    ],
-                  );
-                },
-              ),
+              ...items.asMap().entries.map((itemEntry) {
+                final index = itemEntry.key + 1;
+                final item = itemEntry.value;
+                final description = item.description.trim().isEmpty
+                    ? '—'
+                    : item.description;
+                return pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8),
+                      child: pw.Text(index.toString()),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8),
+                      child: pw.Text(description),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8),
+                      child: pw.Text(item.unit),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8),
+                      child: pw.Text(formatQuantity(item.quantity)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8),
+                      child: pw.Text(tableCurrency(item.unitPrice)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8),
+                      child: pw.Text(tableCurrency(item.total)),
+                    ),
+                  ],
+                );
+              }),
             ],
           ),
           pw.SizedBox(height: 16),
@@ -4930,10 +5105,7 @@ Future<Uint8List> _buildInvoicePdf(
             alignment: pw.Alignment.centerRight,
             child: pw.Text(
               'IZNOS UKUPNO  $amountText',
-              style: pw.TextStyle(
-                fontSize: 14,
-                fontWeight: pw.FontWeight.bold,
-              ),
+              style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
             ),
           ),
           pw.Divider(height: 1, thickness: 1),
@@ -4942,25 +5114,29 @@ Future<Uint8List> _buildInvoicePdf(
             'Izdavalac računa nije obveznik PDV-a po članu 33. zakona o PDV',
             style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
           ),
-        pw.Text(
+          pw.Text(
             'Izdavalac računa je paušalni obveznik poreza po članu 42. Zakona o porezu na dohodak',
             style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
           ),
 
           if (noteText != '—') ...[
             pw.SizedBox(height: 12),
-            pw.Text('Dodatna napomena:',
-                style: const pw.TextStyle(fontSize: 10)),
-            pw.Text(noteText,
-                style: const pw.TextStyle(fontSize: 10)),
-          ],  
+            pw.Text(
+              'Dodatna napomena:',
+              style: const pw.TextStyle(fontSize: 10),
+            ),
+            pw.Text(noteText, style: const pw.TextStyle(fontSize: 10)),
+          ],
 
           pw.SizedBox(height: 12),
-          pw.Text('Način plaćanja: Virman',
-                      style: const pw.TextStyle(fontSize: 11)),
-                  pw.Text('Valuta plaćanja: 14 dana',
-                      style: const pw.TextStyle(fontSize: 11)),
-
+          pw.Text(
+            'Način plaćanja: Virman',
+            style: const pw.TextStyle(fontSize: 11),
+          ),
+          pw.Text(
+            'Valuta plaćanja: 14 dana',
+            style: const pw.TextStyle(fontSize: 11),
+          ),
 
           pw.SizedBox(height: 12),
           pw.Text(
@@ -4996,8 +5172,10 @@ Future<Uint8List> _buildInvoicePdf(
               ),
               pw.Column(
                 children: [
-                  pw.Text('Odgovorno lice',
-                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  pw.Text(
+                    'Odgovorno lice',
+                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  ),
                   pw.SizedBox(height: 24),
                   pw.Container(
                     width: 160,
@@ -5012,8 +5190,8 @@ Future<Uint8List> _buildInvoicePdf(
                       company.responsiblePerson.isNotEmpty
                           ? company.responsiblePerson
                           : (company.shortName.isNotEmpty
-                              ? company.shortName
-                              : company.name),
+                                ? company.shortName
+                                : company.name),
                       style: const pw.TextStyle(fontSize: 10),
                     ),
                   ),

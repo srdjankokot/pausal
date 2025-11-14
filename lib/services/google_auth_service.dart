@@ -27,7 +27,8 @@ class GoogleAuthService {
 
   static const List<String> _scopes = <String>[
     sheets.SheetsApi.spreadsheetsScope,
-    'email',
+    'https://www.googleapis.com/auth/drive.file',
+    'openid',
   ];
   static const Duration _tokenLeeway = Duration(seconds: 30);
   static const Duration _assumedTokenLifetime = Duration(minutes: 55);
@@ -128,6 +129,20 @@ class GoogleAuthService {
     }
 
     return null;
+  }
+
+  Future<String?> getActiveAccessToken() async {
+    final now = DateTime.now().toUtc();
+    if (_cachedCredentials != null &&
+        _cachedCredentials!.accessToken.expiry
+            .isAfter(now.add(_tokenLeeway))) {
+      return _cachedCredentials!.accessToken.data;
+    }
+    final authClient = await getAuthenticatedClient();
+    if (authClient == null) {
+      return null;
+    }
+    return _cachedCredentials?.accessToken.data;
   }
 
   Future<GoogleUser?> _handleAccount(
