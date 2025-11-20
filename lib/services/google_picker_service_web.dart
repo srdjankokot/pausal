@@ -153,27 +153,29 @@ class GooglePickerService {
     return docsView;
   }
 
-  Future<void> _loadGapiModules(Object gapi, String modules) async {
-    final completer = Completer<void>();
-    final options = js_util.newObject();
-    js_util.setProperty(
-      options,
-      'callback',
-      js.allowInterop((dynamic _) {
-        if (!completer.isCompleted) {
-          completer.complete();
-        }
-      }),
-    );
+Future<void> _loadGapiModules(Object gapi, String modules) async {
+  final completer = Completer<void>();
+  final options = js_util.newObject();
 
-    js_util.callMethod(gapi, 'load', [modules, options]);
-    await completer.future.timeout(
-      const Duration(seconds: 10),
-      onTimeout: () {
-        throw StateError('Google API modul nije dostupan: $modules.');
-      },
-    );
-  }
+  js_util.setProperty(
+    options,
+    'callback',
+    js.allowInterop(() {
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    }),
+  );
+
+  js_util.callMethod(gapi, 'load', [modules, options]);
+
+  await completer.future.timeout(
+    const Duration(seconds: 10),
+    onTimeout: () {
+      throw StateError('Google API modul nije dostupan: $modules.');
+    },
+  );
+}
 
   bool _isGapiClientReady(Object gapi) {
     final client = js_util.getProperty(gapi, 'client');

@@ -45,7 +45,7 @@ class _PausalHomeState extends State<PausalHome> {
   String _clientsSheetName = 'Clients';
   String _profileSheetName = 'Profile';
   String? _googleUserEmail;
-  bool _isConnecting = true;
+  bool _isConnecting = false;
 
   bool get _isConnected => _sheetsService != null;
 

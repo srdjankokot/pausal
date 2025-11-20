@@ -294,11 +294,14 @@ class GoogleSheetsService {
   }
 
   Future<void> _ensureSheet(String title, List<String> headers) async {
+    
+    print("_ensureSheet");
     final spreadsheet = await _api.spreadsheets.get(_spreadsheetId);
     final sheetExists =
         spreadsheet.sheets?.any((sheet) => sheet.properties?.title == title) ??
         false;
 
+  print("_ensureSheet: Spreadsheet exists $sheetExists");
     if (!sheetExists) {
       await _api.spreadsheets.batchUpdate(
         sheets.BatchUpdateSpreadsheetRequest(

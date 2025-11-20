@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
-import 'package:google_sign_in_platform_interface/google_sign_in_platform_interface.dart';
 import 'package:google_sign_in_web/google_sign_in_web.dart';
 import 'package:shared_preferences_web/shared_preferences_web.dart';
 
@@ -18,7 +17,7 @@ Future<void> main() async {
   if (kIsWeb) {
     usePathUrlStrategy();
     SharedPreferencesPlugin.registerWith(null);
-    GoogleSignInPlatform.instance = GoogleSignInPlugin();
+    // GoogleSignInPlatform.instance = GoogleSignInPlugin();
   }
 
   runApp(const PausalApp());

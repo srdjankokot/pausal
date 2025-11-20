@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/sheets/v4.dart' as sheets;
 import 'package:googleapis_auth/googleapis_auth.dart' as auth;
@@ -29,6 +30,7 @@ class GoogleAuthService {
     sheets.SheetsApi.spreadsheetsScope,
     'https://www.googleapis.com/auth/drive.file',
     'openid',
+    "email"
   ];
   static const Duration _tokenLeeway = Duration(seconds: 30);
   static const Duration _assumedTokenLifetime = Duration(minutes: 55);
@@ -76,7 +78,6 @@ class GoogleAuthService {
         return restored;
       }
     }
-
     final refreshed = await _attemptSilentSignIn();
     return refreshed ?? restored;
   }
@@ -240,7 +241,7 @@ class GoogleAuthService {
   Future<GoogleUser?> _restorePersistedSession() async {
     final prefs = await SharedPreferences.getInstance();
     final isLoggedOut = prefs.getBool(_logoutFlagKey) ?? false;
-    _explicitLogoutFlag = isLoggedOut;
+    // _explicitLogoutFlag = isLoggedOut;
     if (isLoggedOut) {
       _cachedUser = null;
       _cachedCredentials = null;
@@ -336,7 +337,7 @@ class GoogleAuthService {
   }
 
   Future<void> _setLogoutFlag(bool value) async {
-    _explicitLogoutFlag = value;
+    // _explicitLogoutFlag = value;
     final prefs = await SharedPreferences.getInstance();
     if (value) {
       await prefs.setBool(_logoutFlagKey, true);
@@ -359,15 +360,18 @@ class GoogleAuthService {
   }
 
   Future<GoogleUser?> _attemptSilentSignIn() async {
-    try {
-      final account =
-          await _googleSignIn.signInSilently(suppressErrors: true);
-      if (account != null) {
-        return _handleAccount(account);
-      }
-    } catch (_) {
-      // ignore - return best known session
-    }
+
+if (kIsWeb) {
+  return null;
+} 
+
+  try {
+    final user = await _googleSignIn.signInSilently(suppressErrors: false);
+    if (user != null) {
+     return _handleAccount(user);
+  }
+  } catch (e) {
     return null;
+  }
   }
 }
