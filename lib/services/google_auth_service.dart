@@ -50,38 +50,10 @@ class GoogleAuthService {
   GoogleUser? _cachedUser;
   auth.AccessCredentials? _cachedCredentials;
   auth.AuthClient? _currentClient;
-  bool? _explicitLogoutFlag;
 
   Future<GoogleUser?> signIn() async {
     final account = await _googleSignIn.signIn();
     return _handleAccount(account);
-  }
-
-  Future<GoogleUser?> signInSilently() async {
-    if (await _isExplicitLogout()) {
-      return null;
-    }
-
-    final now = DateTime.now().toUtc();
-
-    if (_cachedUser != null) {
-      if (_cachedCredentials != null &&
-          _cachedCredentials!.accessToken.expiry
-              .isAfter(now.add(_tokenLeeway))) {
-        return _cachedUser;
-      }
-    }
-
-    final restored = await _restorePersistedSession();
-    if (restored != null) {
-      if (_cachedCredentials != null &&
-          _cachedCredentials!.accessToken.expiry
-              .isAfter(now.add(_tokenLeeway))) {
-        return restored;
-      }
-    }
-    final refreshed = await _attemptSilentSignIn();
-    return refreshed ?? restored;
   }
 
   Future<void> signOut() async {
@@ -100,23 +72,19 @@ class GoogleAuthService {
     await _setLogoutFlag(true);
   }
 
+  Future<GoogleUser?> restorePersistedUser() async {
+    return _restorePersistedSession();
+  }
+
   Future<auth.AuthClient?> getAuthenticatedClient() async {
     final now = DateTime.now().toUtc();
 
     if (_cachedCredentials != null &&
-        _cachedCredentials!.accessToken.expiry
-            .isAfter(now.add(_tokenLeeway))) {
+        _cachedCredentials!.accessToken.expiry.isAfter(now.add(_tokenLeeway))) {
       return _ensureClient(_cachedCredentials!);
     }
 
-    GoogleSignInAccount? account = _currentAccount;
-    if (account == null) {
-      try {
-        account = await _googleSignIn.signInSilently(suppressErrors: false);
-      } catch (_) {
-        account = null;
-      }
-    }
+    final GoogleSignInAccount? account = _currentAccount;
     if (account != null) {
       final credentials = await _refreshCredentials(account);
       if (credentials != null) {
@@ -126,8 +94,7 @@ class GoogleAuthService {
 
     await _restorePersistedSession();
     if (_cachedCredentials != null &&
-        _cachedCredentials!.accessToken.expiry
-            .isAfter(now.add(_tokenLeeway))) {
+        _cachedCredentials!.accessToken.expiry.isAfter(now.add(_tokenLeeway))) {
       return _ensureClient(_cachedCredentials!);
     }
 
@@ -137,8 +104,7 @@ class GoogleAuthService {
   Future<String?> getActiveAccessToken() async {
     final now = DateTime.now().toUtc();
     if (_cachedCredentials != null &&
-        _cachedCredentials!.accessToken.expiry
-            .isAfter(now.add(_tokenLeeway))) {
+        _cachedCredentials!.accessToken.expiry.isAfter(now.add(_tokenLeeway))) {
       return _cachedCredentials!.accessToken.data;
     }
     final authClient = await getAuthenticatedClient();
@@ -219,8 +185,7 @@ class GoogleAuthService {
           if (authorizationHeader.startsWith(bearerPrefix)) {
             accessToken = authorizationHeader.substring(bearerPrefix.length);
           } else if (authorizationHeader.toLowerCase().startsWith('bearer ')) {
-            accessToken =
-                authorizationHeader.substring('bearer '.length);
+            accessToken = authorizationHeader.substring('bearer '.length);
           }
         }
       } catch (_) {
@@ -329,15 +294,6 @@ class GoogleAuthService {
     await prefs.remove(_expiryKey);
   }
 
-  Future<bool> _isExplicitLogout() async {
-    if (_explicitLogoutFlag != null) {
-      return _explicitLogoutFlag!;
-    }
-    final prefs = await SharedPreferences.getInstance();
-    _explicitLogoutFlag = prefs.getBool(_logoutFlagKey) ?? false;
-    return _explicitLogoutFlag!;
-  }
-
   Future<void> _setLogoutFlag(bool value) async {
     // _explicitLogoutFlag = value;
     final prefs = await SharedPreferences.getInstance();
@@ -359,18 +315,5 @@ class GoogleAuthService {
     final baseClient = http.Client();
     _currentClient = auth.authenticatedClient(baseClient, credentials);
     return _currentClient;
-  }
-
-  Future<GoogleUser?> _attemptSilentSignIn() async {
-  try {
-    print("_attemptSilentSignIn");
-    final user = await _googleSignIn.signInSilently(suppressErrors: false);
-    if (user != null) {
-     return _handleAccount(user);
-  }
-  } catch (e) {
-    return null;
-  }
-  return null;
   }
 }

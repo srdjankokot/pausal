@@ -313,10 +313,10 @@ class _PausalHomeState extends State<PausalHome> {
     _profileSheetName = metadata.profileSheet;
 
     try {
-      final user = await _authService.signInSilently().timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => null,
-      );
+      final user = await _authService.restorePersistedUser().timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => null,
+          );
       if (user == null) {
         if (mounted) {
           setState(() {
@@ -327,11 +327,18 @@ class _PausalHomeState extends State<PausalHome> {
       }
 
       final client = await _authService.getAuthenticatedClient().timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => null,
-      );
+            const Duration(seconds: 10),
+            onTimeout: () => null,
+          );
       if (client == null) {
         if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Sesija je istekla. Prijavite se ponovo da biste nastavili.',
+              ),
+            ),
+          );
           setState(() {
             _isConnecting = false;
           });
@@ -363,18 +370,16 @@ class _PausalHomeState extends State<PausalHome> {
         _googleUser = user;
         _googleUserEmail = user.email;
         _sheetsService = service;
-        _entries =
-            remoteEntries
-                .map(
-                  (map) => LedgerEntry.fromJson(Map<String, dynamic>.from(map)),
-                )
-                .toList()
-              ..sort((a, b) => b.date.compareTo(a.date));
-        _clients =
-            remoteClients
-                .map((map) => Client.fromJson(Map<String, dynamic>.from(map)))
-                .toList()
-              ..sort((a, b) => a.name.compareTo(b.name));
+        _entries = remoteEntries
+            .map(
+              (map) => LedgerEntry.fromJson(Map<String, dynamic>.from(map)),
+            )
+            .toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
+        _clients = remoteClients
+            .map((map) => Client.fromJson(Map<String, dynamic>.from(map)))
+            .toList()
+          ..sort((a, b) => a.name.compareTo(b.name));
         final companyData = remoteProfiles['company'];
         if (companyData != null && companyData.isNotEmpty) {
           _companyProfile = CompanyProfile.fromJson(
@@ -536,9 +541,9 @@ class _PausalHomeState extends State<PausalHome> {
         return;
       }
       final client = await _authService.getAuthenticatedClient().timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => null,
-      );
+            const Duration(seconds: 10),
+            onTimeout: () => null,
+          );
       if (client == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -588,18 +593,16 @@ class _PausalHomeState extends State<PausalHome> {
       }
 
       setState(() {
-        _entries =
-            remoteEntries
-                .map(
-                  (map) => LedgerEntry.fromJson(Map<String, dynamic>.from(map)),
-                )
-                .toList()
-              ..sort((a, b) => b.date.compareTo(a.date));
-        _clients =
-            remoteClients
-                .map((map) => Client.fromJson(Map<String, dynamic>.from(map)))
-                .toList()
-              ..sort((a, b) => a.name.compareTo(b.name));
+        _entries = remoteEntries
+            .map(
+              (map) => LedgerEntry.fromJson(Map<String, dynamic>.from(map)),
+            )
+            .toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
+        _clients = remoteClients
+            .map((map) => Client.fromJson(Map<String, dynamic>.from(map)))
+            .toList()
+          ..sort((a, b) => a.name.compareTo(b.name));
         _googleUser = user;
         _googleUserEmail = user.email;
         _sheetsService = service;
@@ -693,271 +696,265 @@ class _PausalHomeState extends State<PausalHome> {
     bool createNew = _spreadsheetId == null || _spreadsheetId!.isEmpty;
     String? pickedSpreadsheetName =
         (_spreadsheetId != null && _spreadsheetId!.isNotEmpty)
-        ? _spreadsheetId
-        : null;
+            ? _spreadsheetId
+            : null;
     bool isPickingSpreadsheet = false;
     var isDialogMounted = true;
 
-    final result =
-        await showDialog<SpreadsheetConfig>(
-          context: context,
-          builder: (dialogContext) {
-            return StatefulBuilder(
-              builder: (dialogContext, setDialogState) {
-                Future<void> launchPicker() async {
-                  if (!kIsWeb) {
-                    return;
-                  }
-                  if (kGooglePickerApiKey.isEmpty) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Google Picker API ključ nije konfigurisan.',
-                          ),
-                        ),
-                      );
-                    }
-                    return;
-                  }
-                  final token = await _authService.getActiveAccessToken();
-                  if (token == null) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Greška pri autentifikaciji Google naloga.',
-                          ),
-                        ),
-                      );
-                    }
-                    return;
-                  }
-                  if (!isDialogMounted) {
-                    return;
-                  }
-                  setDialogState(() {
-                    isPickingSpreadsheet = true;
-                  });
-                  final pickerService = GooglePickerService(
-                    apiKey: kGooglePickerApiKey,
+    final result = await showDialog<SpreadsheetConfig>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            Future<void> launchPicker() async {
+              if (!kIsWeb) {
+                return;
+              }
+              if (kGooglePickerApiKey.isEmpty) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Google Picker API ključ nije konfigurisan.',
+                      ),
+                    ),
                   );
-                  try {
-                    final selection = await pickerService.pickSpreadsheet(
-                      oauthToken: token,
-                    );
-                    if (selection != null && isDialogMounted) {
-                      setDialogState(() {
-                        pickedSpreadsheetName = selection.name;
-                        idController.text = selection.id;
-                      });
-                    }
-                  } catch (error, stack) {
-                    debugPrint('Failed to open Google Picker: $error');
-                    debugPrint('$stack');
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Nije moguće učitati Google Picker. Pokušajte ponovo.',
-                          ),
-                        ),
-                      );
-                    }
-                  } finally {
-                    if (isDialogMounted) {
-                      setDialogState(() {
-                        isPickingSpreadsheet = false;
-                      });
-                    }
-                  }
                 }
+                return;
+              }
+              final token = await _authService.getActiveAccessToken();
+              if (token == null) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Greška pri autentifikaciji Google naloga.',
+                      ),
+                    ),
+                  );
+                }
+                return;
+              }
+              if (!isDialogMounted) {
+                return;
+              }
+              setDialogState(() {
+                isPickingSpreadsheet = true;
+              });
+              final pickerService = GooglePickerService(
+                apiKey: kGooglePickerApiKey,
+              );
+              try {
+                final selection = await pickerService.pickSpreadsheet(
+                  oauthToken: token,
+                );
+                if (selection != null && isDialogMounted) {
+                  setDialogState(() {
+                    pickedSpreadsheetName = selection.name;
+                    idController.text = selection.id;
+                  });
+                }
+              } catch (error, stack) {
+                debugPrint('Failed to open Google Picker: $error');
+                debugPrint('$stack');
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Nije moguće učitati Google Picker. Pokušajte ponovo.',
+                      ),
+                    ),
+                  );
+                }
+              } finally {
+                if (isDialogMounted) {
+                  setDialogState(() {
+                    isPickingSpreadsheet = false;
+                  });
+                }
+              }
+            }
 
-                return AlertDialog(
-                  title: const Text('Povezivanje sa Google Sheet-om'),
-                  content: Form(
-                    key: formKey,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SwitchListTile.adaptive(
-                            contentPadding: EdgeInsets.zero,
-                            value: createNew,
-                            title: const Text('Kreiraj novi Google Sheet'),
-                            subtitle: const Text(
-                              'Aplikacija će automatski kreirati dokument i radne listove.',
-                            ),
-                            onChanged: (value) {
-                              setDialogState(() {
-                                createNew = value;
-                              });
-                            },
+            return AlertDialog(
+              title: const Text('Povezivanje sa Google Sheet-om'),
+              content: Form(
+                key: formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        value: createNew,
+                        title: const Text('Kreiraj novi Google Sheet'),
+                        subtitle: const Text(
+                          'Aplikacija će automatski kreirati dokument i radne listove.',
+                        ),
+                        onChanged: (value) {
+                          setDialogState(() {
+                            createNew = value;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      if (createNew)
+                        TextFormField(
+                          controller: titleController,
+                          decoration: const InputDecoration(
+                            labelText: 'Naziv dokumenta',
+                            hintText: 'Paušal kalkulator',
                           ),
-                          const SizedBox(height: 12),
-                          if (createNew)
-                            TextFormField(
-                              controller: titleController,
-                              decoration: const InputDecoration(
-                                labelText: 'Naziv dokumenta',
-                                hintText: 'Paušal kalkulator',
-                              ),
-                              validator: (value) {
-                                if (!createNew) {
-                                  return null;
-                                }
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Unesite naziv dokumenta';
-                                }
-                                return null;
-                              },
-                            )
-                          else if (kIsWeb)
-                            TextFormField(
-                              controller: idController,
-                              readOnly: true,
-                              decoration: InputDecoration(
-                                labelText: 'Google Sheet dokument',
-                                hintText: 'Izaberite Google Sheets dokument',
-                                helperText: pickedSpreadsheetName == null
-                                    ? 'Kliknite na ikonu desno kako biste izabrali dokument.'
-                                    : 'Odabrano: $pickedSpreadsheetName',
-                                suffixIcon: IconButton(
-                                  tooltip: 'Izaberi iz Google Drive-a',
-                                  onPressed:
-                                      isPickingSpreadsheet ||
-                                          kGooglePickerApiKey.isEmpty
-                                      ? null
-                                      : () {
-                                          FocusScope.of(
-                                            dialogContext,
-                                          ).unfocus();
-                                          unawaited(launchPicker());
-                                        },
-                                  icon: isPickingSpreadsheet
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      : const Icon(Icons.folder_open),
-                                ),
-                              ),
-                              onTap:
-                                  isPickingSpreadsheet ||
+                          validator: (value) {
+                            if (!createNew) {
+                              return null;
+                            }
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Unesite naziv dokumenta';
+                            }
+                            return null;
+                          },
+                        )
+                      else if (kIsWeb)
+                        TextFormField(
+                          controller: idController,
+                          readOnly: true,
+                          decoration: InputDecoration(
+                            labelText: 'Google Sheet dokument',
+                            hintText: 'Izaberite Google Sheets dokument',
+                            helperText: pickedSpreadsheetName == null
+                                ? 'Kliknite na ikonu desno kako biste izabrali dokument.'
+                                : 'Odabrano: $pickedSpreadsheetName',
+                            suffixIcon: IconButton(
+                              tooltip: 'Izaberi iz Google Drive-a',
+                              onPressed: isPickingSpreadsheet ||
                                       kGooglePickerApiKey.isEmpty
                                   ? null
                                   : () {
-                                      FocusScope.of(dialogContext).unfocus();
+                                      FocusScope.of(
+                                        dialogContext,
+                                      ).unfocus();
                                       unawaited(launchPicker());
                                     },
-                              validator: (value) {
-                                if (createNew) {
-                                  return null;
-                                }
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'Izaberite Google Sheet dokument';
-                                }
-                                return null;
-                              },
-                            )
-                          else
-                            TextFormField(
-                              controller: idController,
-                              decoration: const InputDecoration(
-                                labelText: 'Spreadsheet URL ili ID',
-                                hintText:
-                                    'https://docs.google.com/... ili 1A2B3C...',
-                              ),
-                              validator: (value) {
-                                if (createNew) {
-                                  return null;
-                                }
-                                if (_extractSpreadsheetId(value) == null) {
-                                  return 'Unesite pun URL ili ID Google Sheets dokumenta';
-                                }
-                                return null;
-                              },
-                            ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: expensesController,
-                            decoration: const InputDecoration(
-                              labelText: 'Sheet za troškove',
+                              icon: isPickingSpreadsheet
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : const Icon(Icons.folder_open),
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: clientsController,
-                            decoration: const InputDecoration(
-                              labelText: 'Sheet za klijente',
-                            ),
+                          onTap: isPickingSpreadsheet ||
+                                  kGooglePickerApiKey.isEmpty
+                              ? null
+                              : () {
+                                  FocusScope.of(dialogContext).unfocus();
+                                  unawaited(launchPicker());
+                                },
+                          validator: (value) {
+                            if (createNew) {
+                              return null;
+                            }
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Izaberite Google Sheet dokument';
+                            }
+                            return null;
+                          },
+                        )
+                      else
+                        TextFormField(
+                          controller: idController,
+                          decoration: const InputDecoration(
+                            labelText: 'Spreadsheet URL ili ID',
+                            hintText:
+                                'https://docs.google.com/... ili 1A2B3C...',
                           ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: profileController,
-                            decoration: const InputDecoration(
-                              labelText: 'Sheet za profil',
-                            ),
-                          ),
-                        ],
+                          validator: (value) {
+                            if (createNew) {
+                              return null;
+                            }
+                            if (_extractSpreadsheetId(value) == null) {
+                              return 'Unesite pun URL ili ID Google Sheets dokumenta';
+                            }
+                            return null;
+                          },
+                        ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: expensesController,
+                        decoration: const InputDecoration(
+                          labelText: 'Sheet za troškove',
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: clientsController,
+                        decoration: const InputDecoration(
+                          labelText: 'Sheet za klijente',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: profileController,
+                        decoration: const InputDecoration(
+                          labelText: 'Sheet za profil',
+                        ),
+                      ),
+                    ],
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                      child: const Text('Otkaži'),
-                    ),
-                    FilledButton(
-                      onPressed: () {
-                        if (formKey.currentState?.validate() != true) {
-                          return;
-                        }
-                        final expensesSheet =
-                            expensesController.text.trim().isEmpty
-                            ? 'Expenses'
-                            : expensesController.text.trim();
-                        final clientsSheet =
-                            clientsController.text.trim().isEmpty
-                            ? 'Clients'
-                            : clientsController.text.trim();
-                        final profileSheet =
-                            profileController.text.trim().isEmpty
-                            ? 'Profile'
-                            : profileController.text.trim();
-                        final parsedId = _extractSpreadsheetId(
-                          idController.text,
-                        );
-                        final config = createNew
-                            ? SpreadsheetConfig(
-                                createNew: true,
-                                spreadsheetTitle: titleController.text.trim(),
-                                expensesSheet: expensesSheet,
-                                clientsSheet: clientsSheet,
-                                profileSheet: profileSheet,
-                              )
-                            : SpreadsheetConfig(
-                                createNew: false,
-                                spreadsheetId: parsedId!,
-                                expensesSheet: expensesSheet,
-                                clientsSheet: clientsSheet,
-                                profileSheet: profileSheet,
-                              );
-                        Navigator.of(dialogContext).pop(config);
-                      },
-                      child: const Text('Poveži'),
-                    ),
-                  ],
-                );
-              },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Otkaži'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    if (formKey.currentState?.validate() != true) {
+                      return;
+                    }
+                    final expensesSheet = expensesController.text.trim().isEmpty
+                        ? 'Expenses'
+                        : expensesController.text.trim();
+                    final clientsSheet = clientsController.text.trim().isEmpty
+                        ? 'Clients'
+                        : clientsController.text.trim();
+                    final profileSheet = profileController.text.trim().isEmpty
+                        ? 'Profile'
+                        : profileController.text.trim();
+                    final parsedId = _extractSpreadsheetId(
+                      idController.text,
+                    );
+                    final config = createNew
+                        ? SpreadsheetConfig(
+                            createNew: true,
+                            spreadsheetTitle: titleController.text.trim(),
+                            expensesSheet: expensesSheet,
+                            clientsSheet: clientsSheet,
+                            profileSheet: profileSheet,
+                          )
+                        : SpreadsheetConfig(
+                            createNew: false,
+                            spreadsheetId: parsedId!,
+                            expensesSheet: expensesSheet,
+                            clientsSheet: clientsSheet,
+                            profileSheet: profileSheet,
+                          );
+                    Navigator.of(dialogContext).pop(config);
+                  },
+                  child: const Text('Poveži'),
+                ),
+              ],
             );
           },
-        ).whenComplete(() {
-          isDialogMounted = false;
-        });
+        );
+      },
+    ).whenComplete(() {
+      isDialogMounted = false;
+    });
 
     return result;
   }
@@ -1189,8 +1186,3 @@ class _PausalHomeState extends State<PausalHome> {
     );
   }
 }
-
-
-
-
-
