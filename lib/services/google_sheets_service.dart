@@ -47,26 +47,34 @@ class GoogleSheetsService {
     return spreadsheetId;
   }
 
-  Future<void> ensureStructure() async {
-    await _ensureSheet(expensesSheet, [
-      'ID',
-      'Tip',
-      'Naziv',
-      'Iznos',
-      'Datum',
-      'Broj fakture',
-      'Napomena',
-      'Klijent ID',
-      'Stavke',
-    ]);
-    await _ensureSheet(
-      clientsSheet,
-      ['ID', 'Naziv', 'PIB', 'Adresa'],
-    );
-    await _ensureSheet(
-      profileSheet,
-      ['Sekcija', 'Polje', 'Vrednost'],
-    );
+  Future<void> ensureStructure({
+    void Function(String sheetName, double progress)? onSheet,
+  }) async {
+    final sheetsToEnsure = [
+      (
+        expensesSheet,
+        [
+          'ID',
+          'Tip',
+          'Naziv',
+          'Iznos',
+          'Datum',
+          'Broj fakture',
+          'Napomena',
+          'Klijent ID',
+          'Stavke',
+        ]
+      ),
+      (clientsSheet, ['ID', 'Naziv', 'PIB', 'Adresa']),
+      (profileSheet, ['Sekcija', 'Polje', 'Vrednost']),
+    ];
+
+    for (var i = 0; i < sheetsToEnsure.length; i++) {
+      final sheetName = sheetsToEnsure[i].$1;
+      final headers = sheetsToEnsure[i].$2;
+      onSheet?.call(sheetName, (i + 1) / sheetsToEnsure.length);
+      await _ensureSheet(sheetName, headers);
+    }
   }
 
   Future<void> uploadAll({

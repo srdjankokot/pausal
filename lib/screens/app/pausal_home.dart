@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -46,6 +47,9 @@ class _PausalHomeState extends State<PausalHome> {
   String _profileSheetName = 'Profile';
   String? _googleUserEmail;
   bool _isConnecting = false;
+  bool _isCheckingStructure = false;
+  double _structureProgress = 0;
+  String _structureStatus = '';
 
   bool get _isConnected => _sheetsService != null;
 
@@ -127,6 +131,24 @@ class _PausalHomeState extends State<PausalHome> {
   void dispose() {
     _sheetsService?.close();
     super.dispose();
+  }
+
+  void _setStructureProgress(String status, double progress) {
+    if (!mounted) return;
+    setState(() {
+      _isCheckingStructure = true;
+      _structureStatus = status;
+      _structureProgress = progress.clamp(0, 1);
+    });
+  }
+
+  void _resetStructureProgress() {
+    if (!mounted) return;
+    setState(() {
+      _isCheckingStructure = false;
+      _structureStatus = '';
+      _structureProgress = 0;
+    });
   }
 
   void _addEntry(LedgerEntry entry) {
@@ -355,7 +377,18 @@ class _PausalHomeState extends State<PausalHome> {
         profileSheet: _profileSheetName,
       );
 
-      await service.ensureStructure();
+      _setStructureProgress('Proveravamo strukturu tabele...', 0.2);
+      await service.ensureStructure(
+        onSheet: (sheetName, progress) {
+          _setStructureProgress(
+            'Proveravamo strukturu sheet-a $sheetName',
+            progress,
+          );
+        },
+      );
+      _setStructureProgress('Struktura potvrđena', 1);
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      _resetStructureProgress();
 
       final remoteEntries = await service.fetchEntries();
       final remoteClients = await service.fetchClients();
@@ -409,6 +442,7 @@ class _PausalHomeState extends State<PausalHome> {
           _isConnecting = false;
         });
       }
+      _resetStructureProgress();
     }
   }
 
@@ -581,7 +615,18 @@ class _PausalHomeState extends State<PausalHome> {
         profileSheet: profileSheet,
       );
 
-      await service.ensureStructure();
+      _setStructureProgress('Proveravamo strukturu tabele...', 0.2);
+      await service.ensureStructure(
+        onSheet: (sheetName, progress) {
+          _setStructureProgress(
+            'Proveravamo strukturu sheet-a $sheetName',
+            progress,
+          );
+        },
+      );
+      _setStructureProgress('Struktura potvrđena', 1);
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      _resetStructureProgress();
 
       final remoteEntries = await service.fetchEntries();
       final remoteClients = await service.fetchClients();
@@ -664,6 +709,7 @@ class _PausalHomeState extends State<PausalHome> {
       } else {
         _isConnecting = false;
       }
+      _resetStructureProgress();
     }
   }
 
@@ -1135,6 +1181,75 @@ class _PausalHomeState extends State<PausalHome> {
     return Stack(
       children: [
         scaffold,
+        if (_isCheckingStructure)
+          Positioned.fill(
+            child: AbsorbPointer(
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.25),
+                alignment: Alignment.center,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 20,
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 28,
+                        vertical: 22,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Proveravamo strukturu tabele...',
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 12),
+                          LinearProgressIndicator(
+                            value: _structureProgress <= 0
+                                ? null
+                                : _structureProgress.clamp(0, 1),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  _structureStatus.isEmpty
+                                      ? 'Proveravamo radne listove i zaglavlja...'
+                                      : _structureStatus,
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                '${(_structureProgress * 100).clamp(0, 100).round()}%',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures()
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         if (_isUploading)
           Positioned.fill(
             child: AbsorbPointer(
