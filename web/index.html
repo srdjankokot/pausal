@@ -46,6 +46,27 @@
   <script src="https://www.gstatic.com/firebasejs/7.15.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/7.15.1/firebase-analytics.js"></script>
 
+  <!-- <script>
+  window.google.accounts.id.initialize({
+    client_id: "YO97156095733-42r8nl0j9krm0rr4ak8nb66foghu2ssf.apps.googleusercontent.com",
+    auto_select: false,
+    use_fedcm_for_prompt: true,
+    cancel_on_tap_outside: false,
+  });
+</script> -->
+
+<script>
+google.accounts.oauth2.initTokenClient({
+    client_id: "YO97156095733-42r8nl0j9krm0rr4ak8nb66foghu2ssf.apps.googleusercontent.com",
+  scope: "https://www.googleapis.com/auth/spreadsheets",
+  callback: (response) => {
+      window.ACCESS_TOKEN = response.access_token;
+  }
+});
+</script>
+
+
+
 
 <script>
     var firebaseConfig = {

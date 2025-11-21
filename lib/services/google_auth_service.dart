@@ -24,13 +24,15 @@ class GoogleAuthService {
       : _googleSignIn = GoogleSignIn(
           clientId: webClientId,
           scopes: _scopes,
+          signInOption: SignInOption.standard,
+          hostedDomain: null,
         );
 
   static const List<String> _scopes = <String>[
     sheets.SheetsApi.spreadsheetsScope,
     'https://www.googleapis.com/auth/drive.file',
     'openid',
-    "email"
+    'email'
   ];
   static const Duration _tokenLeeway = Duration(seconds: 30);
   static const Duration _assumedTokenLifetime = Duration(minutes: 55);
@@ -110,7 +112,7 @@ class GoogleAuthService {
     GoogleSignInAccount? account = _currentAccount;
     if (account == null) {
       try {
-        account = await _googleSignIn.signInSilently(suppressErrors: true);
+        account = await _googleSignIn.signInSilently(suppressErrors: false);
       } catch (_) {
         account = null;
       }
@@ -360,12 +362,8 @@ class GoogleAuthService {
   }
 
   Future<GoogleUser?> _attemptSilentSignIn() async {
-
-if (kIsWeb) {
-  return null;
-} 
-
   try {
+    print("_attemptSilentSignIn");
     final user = await _googleSignIn.signInSilently(suppressErrors: false);
     if (user != null) {
      return _handleAccount(user);
@@ -373,5 +371,6 @@ if (kIsWeb) {
   } catch (e) {
     return null;
   }
+  return null;
   }
 }

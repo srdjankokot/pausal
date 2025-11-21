@@ -339,6 +339,7 @@ class _PausalHomeState extends State<PausalHome> {
         return;
       }
 
+      print(client);
       final service = GoogleSheetsService(
         client: client,
         spreadsheetId: _spreadsheetId!,
