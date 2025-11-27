@@ -109,6 +109,7 @@ class _LedgerTabState extends State<LedgerTab> {
         .toList();
 
     return Card(
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

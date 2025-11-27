@@ -158,7 +158,7 @@
     }
   },
 
-  "overviewGreeting": "Zdravo, paušalac!",
+  "overviewGreeting": "Dobrodošao, paušalac",
   "overviewSubtitle": "Praćenje prihoda, troškova i limita paušalnog oporezivanja.",
   "total": "Ukupno",
   "issuedInvoices": "Izdati računi",

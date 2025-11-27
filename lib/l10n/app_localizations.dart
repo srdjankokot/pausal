@@ -743,7 +743,7 @@ abstract class AppLocalizations {
   /// No description provided for @overviewGreeting.
   ///
   /// In sr, this message translates to:
-  /// **'Zdravo, paušalac!'**
+  /// **'Dobrodošao, paušalac'**
   String get overviewGreeting;
 
   /// No description provided for @overviewSubtitle.

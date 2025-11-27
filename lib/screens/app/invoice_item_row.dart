@@ -18,7 +18,6 @@ class InvoiceItemRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final totalLabel = formatCurrency(data.total);
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -143,11 +142,24 @@ class InvoiceItemRow extends StatelessWidget {
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
-              child: Text(
-                'Iznos stavke: $totalLabel',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Iznos stavke: ',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  buildCurrencyText(
+                    context,
+                    data.total,
+                    numberFontSize: 14,
+                    currencyFontSize: 9,
+                    numberWeight: FontWeight.w600,
+                    numberColor: Colors.black87,
+                  ),
+                ],
               ),
             ),
           ],

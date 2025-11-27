@@ -162,177 +162,232 @@ class _ProfileFormState extends State<ProfileForm> {
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
-      child: Column(
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Podaci o firmi',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _companyNameController,
-            decoration: const InputDecoration(
-              labelText: 'Naziv firme',
-              border: OutlineInputBorder(),
-            ),
-            textCapitalization: TextCapitalization.words,
-            validator: (value) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Unesite naziv';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _companyShortNameController,
-            decoration: const InputDecoration(
-              labelText: 'Skraćeni naziv (opciono)',
-              border: OutlineInputBorder(),
-            ),
-            textCapitalization: TextCapitalization.words,
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _companyResponsibleController,
-            decoration: const InputDecoration(
-              labelText: 'Odgovorno lice',
-              border: OutlineInputBorder(),
-            ),
-            textCapitalization: TextCapitalization.words,
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _companyPibController,
-            decoration: const InputDecoration(
-              labelText: 'PIB',
-              border: OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _companyAddressController,
-            decoration: const InputDecoration(
-              labelText: 'Adresa',
-              border: OutlineInputBorder(),
-            ),
-            textCapitalization: TextCapitalization.sentences,
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _companyAccountController,
-            decoration: const InputDecoration(
-              labelText: 'Broj računa',
-              border: OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.text,
-          ),
-          const SizedBox(height: 24),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Poreski podaci paušala',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _cityController,
-            decoration: const InputDecoration(
-              labelText: 'Grad',
-              border: OutlineInputBorder(),
-            ),
-            textCapitalization: TextCapitalization.sentences,
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _pensionController,
-            decoration: const InputDecoration(
-              labelText: 'PIO doprinos (mesečno)',
-              suffixText: 'RSD',
-              border: OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.number,
-            validator: validatePositiveNumber,
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _healthController,
-            decoration: const InputDecoration(
-              labelText: 'Zdravstveno osiguranje (mesečno)',
-              suffixText: 'RSD',
-              border: OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.number,
-            validator: validatePositiveNumber,
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _taxController,
-            decoration: const InputDecoration(
-              labelText: 'Akontacija poreza (mesečno)',
-              suffixText: 'RSD',
-              border: OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.number,
-            validator: validatePositiveNumber,
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _limitController,
-            decoration: const InputDecoration(
-              labelText: 'Godišnji limit prihoda',
-              suffixText: 'RSD',
-              border: OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.number,
-            validator: validatePositiveNumber,
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _rollingLimitController,
-            decoration: const InputDecoration(
-              labelText: 'Limit u poslednjih 12 meseci',
-              suffixText: 'RSD',
-              border: OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.number,
-            validator: validatePositiveNumber,
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _rateController,
-            decoration: const InputDecoration(
-              labelText: 'Dodatni porez (u %)',
-              suffixText: '%',
-              border: OutlineInputBorder(),
-            ),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            validator: (value) {
-              final parsed = double.tryParse(value ?? '');
-              if (parsed == null || parsed < 0) {
-                return 'Unesite broj veći ili jednak nuli';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth > 900;
+
+          final companyCard = Container(
             width: double.infinity,
-            child: FilledButton(
-              onPressed: _submit,
-              child: const Text('Sačuvaj promene'),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-          ),
-        ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Podaci o firmi',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _companyNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Naziv firme',
+                    border: OutlineInputBorder(),
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Unesite naziv';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _companyShortNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Skraćeni naziv (opciono)',
+                    border: OutlineInputBorder(),
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _companyResponsibleController,
+                  decoration: const InputDecoration(
+                    labelText: 'Odgovorno lice',
+                    border: OutlineInputBorder(),
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _companyPibController,
+                  decoration: const InputDecoration(
+                    labelText: 'PIB',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _companyAddressController,
+                  decoration: const InputDecoration(
+                    labelText: 'Adresa',
+                    border: OutlineInputBorder(),
+                  ),
+                  textCapitalization: TextCapitalization.sentences,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _companyAccountController,
+                  decoration: const InputDecoration(
+                    labelText: 'Broj računa',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.text,
+                ),
+              ],
+            ),
+          );
+
+          final taxCard = Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Poreski podaci paušala',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _cityController,
+                  decoration: const InputDecoration(
+                    labelText: 'Grad',
+                    border: OutlineInputBorder(),
+                  ),
+                  textCapitalization: TextCapitalization.sentences,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _pensionController,
+                  decoration: const InputDecoration(
+                    labelText: 'PIO doprinos (mesečno)',
+                    suffixText: 'RSD',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: validatePositiveNumber,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _healthController,
+                  decoration: const InputDecoration(
+                    labelText: 'Zdravstveno osiguranje (mesečno)',
+                    suffixText: 'RSD',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: validatePositiveNumber,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _taxController,
+                  decoration: const InputDecoration(
+                    labelText: 'Akontacija poreza (mesečno)',
+                    suffixText: 'RSD',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: validatePositiveNumber,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _limitController,
+                  decoration: const InputDecoration(
+                    labelText: 'Godišnji limit prihoda',
+                    suffixText: 'RSD',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: validatePositiveNumber,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _rollingLimitController,
+                  decoration: const InputDecoration(
+                    labelText: 'Limit u poslednjih 12 meseci',
+                    suffixText: 'RSD',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: validatePositiveNumber,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _rateController,
+                  decoration: const InputDecoration(
+                    labelText: 'Dodatni porez (u %)',
+                    suffixText: '%',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  validator: (value) {
+                    final parsed = double.tryParse(value ?? '');
+                    if (parsed == null || parsed < 0) {
+                      return 'Unesite broj veći ili jednak nuli';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          );
+
+          return Column(
+            children: [
+              if (isWide)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: companyCard),
+                    const SizedBox(width: 16),
+                    Expanded(child: taxCard),
+                  ],
+                )
+              else ...[
+                companyCard,
+                const SizedBox(height: 20),
+                taxCard,
+              ],
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _submit,
+                  child: const Text('Sačuvaj promene'),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

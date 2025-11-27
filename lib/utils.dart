@@ -1,6 +1,7 @@
 
 import 'dart:typed_data';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pausal_calculator/screens/app/client.dart';
 import 'package:pausal_calculator/screens/app/company_profile.dart';
@@ -40,7 +41,7 @@ String monthName(int month) {
   return monthNames[month - 1];
 }
 
-String formatCurrency(double value) {
+String formatCurrency(double value, {bool includeCurrency = true, bool includeDecimals = true}) {
   final sign = value < 0 ? '-' : '';
   final absValue = value.abs();
   final parts = absValue.toStringAsFixed(2).split('.');
@@ -50,7 +51,54 @@ String formatCurrency(double value) {
     RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
     (match) => '${match[1]}.',
   );
-  return 'RSD $sign$separated,$decimalPart';
+
+  if (!includeDecimals) {
+    return includeCurrency
+        ? '$sign$separated RSD'
+        : '$sign$separated';
+  }
+
+  return includeCurrency
+      ? '$sign$separated,$decimalPart RSD'
+      : '$sign$separated,$decimalPart';
+}
+
+Widget buildCurrencyText(
+  BuildContext context,
+  double value, {
+  double numberFontSize = 28,
+  double currencyFontSize = 12,
+  FontWeight numberWeight = FontWeight.bold,
+  FontWeight currencyWeight = FontWeight.w400,
+  Color? numberColor,
+  Color? currencyColor,
+  TextAlign textAlign = TextAlign.start,
+  bool includeDecimals = true,
+}) {
+  final formattedValue = formatCurrency(value, includeCurrency: false, includeDecimals: includeDecimals);
+  return RichText(
+    textAlign: textAlign,
+    text: TextSpan(
+      children: [
+        TextSpan(
+          text: formattedValue,
+          style: TextStyle(
+            fontWeight: numberWeight,
+            color: numberColor ?? Colors.black,
+            fontSize: numberFontSize,
+          ),
+        ),
+        TextSpan(
+          text: ' RSD',
+          style: TextStyle(
+            color: currencyColor ?? Colors.grey[500],
+            fontSize: currencyFontSize,
+            fontWeight: currencyWeight,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 String formatDate(DateTime date) {

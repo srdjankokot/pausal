@@ -167,7 +167,7 @@ class AppStrings {
   // ============================================
   // OVERVIEW TAB
   // ============================================
-  static const String overviewGreeting = 'Zdravo, paušalac!';
+  static const String overviewGreeting = 'Dobrodošao, paušalac';
   static const String overviewSubtitle = 'Praćenje prihoda, troškova i limita paušalnog oporezivanja.';
   static const String total = 'Ukupno';
   static const String issuedInvoices = 'Izdati računi';

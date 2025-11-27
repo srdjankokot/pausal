@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pausal_calculator/utils.dart';
 
 class ContributionRow extends StatelessWidget {
   const ContributionRow({
@@ -8,7 +9,7 @@ class ContributionRow extends StatelessWidget {
   });
 
   final String label;
-  final String value;
+  final double value;
   final bool emphasize;
 
   @override
@@ -22,11 +23,13 @@ class ContributionRow extends StatelessWidget {
             fontWeight: emphasize ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
-        Text(
+        buildCurrencyText(
+          context,
           value,
-          style: TextStyle(
-            fontWeight: emphasize ? FontWeight.w700 : FontWeight.w600,
-          ),
+          numberFontSize: emphasize ? 16 : 15,
+          currencyFontSize: emphasize ? 10 : 9,
+          numberWeight: emphasize ? FontWeight.w700 : FontWeight.w600,
+          numberColor: Colors.black87,
         ),
       ],
     );

@@ -31,6 +31,7 @@ class LedgerSection extends StatelessWidget {
     final grouped = groupEntriesByMonth(entries);
 
     return Card(
+      color: Colors.white,
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: Padding(
@@ -105,11 +106,13 @@ class LedgerSection extends StatelessWidget {
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  formatCurrency(item.amount),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                buildCurrencyText(
+                                  context,
+                                  item.amount,
+                                  numberFontSize: 15,
+                                  currencyFontSize: 9,
+                                  numberWeight: FontWeight.bold,
+                                  numberColor: Colors.black87,
                                 ),
                                 PopupMenuButton<String>(
                                   tooltip: 'Radnje',

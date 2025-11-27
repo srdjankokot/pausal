@@ -43,6 +43,7 @@ class PausalHome extends StatefulWidget {
 
 class _PausalHomeState extends State<PausalHome> {
   int _currentIndex = 0;
+  bool _isSidebarCollapsed = false;
 
   String? _spreadsheetId;
   String _expensesSheetName = 'Expenses';
@@ -1109,86 +1110,255 @@ class _PausalHomeState extends State<PausalHome> {
     Widget? floatingActionButton;
     if (_isConnected) {
       if (_currentIndex == 0 || _currentIndex == 1) {
-        floatingActionButton = FloatingActionButton.extended(
-          onPressed: () => _openEntrySheet(),
-          icon: const Icon(Icons.add),
-          label: Text(l10n.fabNewEntry),
+        floatingActionButton = _buildPrimaryFab(
+          label: l10n.fabNewEntry,
+          icon: Icons.add,
+          onPressed: _openEntrySheet,
+          heroTag: 'entryFab',
         );
       } else if (_currentIndex == 2) {
-        floatingActionButton = FloatingActionButton.extended(
-          onPressed: () => _openClientSheet(),
-          icon: const Icon(Icons.person_add),
-          label: Text(l10n.fabNewClient),
+        floatingActionButton = _buildPrimaryFab(
+          label: l10n.fabNewClient,
+          icon: Icons.person_add,
+          onPressed: _openClientSheet,
+          heroTag: 'clientFab',
         );
       }
     }
 
     final scaffold = Scaffold(
-      appBar: AppBar(
-        title: const Text(''),
-        actions: [
-          // Language selector
-          PopupMenuButton<Locale>(
-            tooltip: 'Language / Jezik',
-            icon: const Icon(Icons.language),
-            onSelected: (locale) => widget.onLanguageChange?.call(locale),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: Locale('sr', ''),
-                child: Text('🇷🇸 Srpski'),
-              ),
-              const PopupMenuItem(
-                value: Locale('en', ''),
-                child: Text('🇬🇧 English'),
-              ),
-            ],
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      
+      // appBar: isWideLayout ? null : AppBar(
+      //   title: const Text(''),
+      //   actions: [
+      //     // Language selector (only shown on mobile)
+      //     PopupMenuButton<Locale>(
+      //       tooltip: 'Language / Jezik',
+      //       icon: const Icon(Icons.language),
+      //       onSelected: (locale) => widget.onLanguageChange?.call(locale),
+      //       itemBuilder: (context) => [
+      //         const PopupMenuItem(
+      //           value: Locale('sr', ''),
+      //           child: Text('🇷🇸 Srpski'),
+      //         ),
+      //         const PopupMenuItem(
+      //           value: Locale('en', ''),
+      //           child: Text('🇬🇧 English'),
+      //         ),
+      //       ],
+      //     ),
+      //     const SizedBox(width: 8),
+      //   ],
+      // ),
       body: isWideLayout
           ? Row(
               children: [
-                NavigationRail(
-                  extended: isRailExtended,
-                  selectedIndex: _currentIndex,
-                  onDestinationSelected: (index) {
-                    setState(() => _currentIndex = index);
-                  },
-                  labelType: isRailExtended
-                      ? NavigationRailLabelType.none
-                      : NavigationRailLabelType.selected,
-                  leading: const SizedBox(height: 8),
-                  destinations: [
-                    NavigationRailDestination(
-                      icon: const Icon(Icons.dashboard_outlined),
-                      selectedIcon: const Icon(Icons.dashboard),
-                      label: Text(l10n.navOverview),
-                    ),
-                    NavigationRailDestination(
-                      icon: const Icon(Icons.receipt_long_outlined),
-                      selectedIcon: const Icon(Icons.receipt_long),
-                      label: Text(l10n.navLedger),
-                    ),
-                    NavigationRailDestination(
-                      icon: const Icon(Icons.people_alt_outlined),
-                      selectedIcon: const Icon(Icons.people),
-                      label: Text(l10n.navClients),
-                    ),
-                    NavigationRailDestination(
-                      icon: const Icon(Icons.settings_outlined),
-                      selectedIcon: const Icon(Icons.settings),
-                      label: Text(l10n.navProfile),
-                    ),
-                  ],
+                Container(
+                  width: _isSidebarCollapsed ? 92 : 240,
+                  color: const Color(0xFF1E293B),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: _isSidebarCollapsed ? 12 : 20,
+                        ),
+                        child: Row(
+                          children: [
+                            
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.asset(
+                                  'assets/images/pausal_logo.png',
+                                  width: 32,
+                                  height: 32,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            if (!_isSidebarCollapsed) const SizedBox(width: 12),
+                            if (!_isSidebarCollapsed)
+                              const Text(
+                                'Pausal',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            const Spacer(),
+                            IconButton(
+                              tooltip: _isSidebarCollapsed ? 'Proširi meni' : 'Sakrij meni',
+                              onPressed: () {
+                                setState(() {
+                                  _isSidebarCollapsed = !_isSidebarCollapsed;
+                                });
+                              },
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                              visualDensity: VisualDensity.compact,
+                              icon: Icon(
+                                _isSidebarCollapsed
+                                    ? Icons.chevron_right
+                                    : Icons.chevron_left,
+                                color: Colors.grey[300],
+                                size: 20,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          children: [
+                            _buildNavItem(
+                              icon: Icons.dashboard_outlined,
+                              label: l10n.navOverview,
+                              isSelected: _currentIndex == 0,
+                              isCollapsed: _isSidebarCollapsed,
+                              onTap: () => setState(() => _currentIndex = 0),
+                            ),
+                            _buildNavItem(
+                              icon: Icons.receipt_long_outlined,
+                              label: l10n.navLedger,
+                              isSelected: _currentIndex == 1,
+                              isCollapsed: _isSidebarCollapsed,
+                              onTap: () => setState(() => _currentIndex = 1),
+                            ),
+                            _buildNavItem(
+                              icon: Icons.people_alt_outlined,
+                              label: l10n.navClients,
+                              isSelected: _currentIndex == 2,
+                              isCollapsed: _isSidebarCollapsed,
+                              onTap: () => setState(() => _currentIndex = 2),
+                            ),
+                            _buildNavItem(
+                              icon: Icons.settings_outlined,
+                              label: l10n.navProfile,
+                              isSelected: _currentIndex == 3,
+                              isCollapsed: _isSidebarCollapsed,
+                              onTap: () => setState(() => _currentIndex = 3),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // if (!_isSidebarCollapsed)
+                      //   Padding(
+                      //     padding: const EdgeInsets.symmetric(horizontal: 20),
+                      //     child: Column(
+                      //       children: [
+                      //         // Language selector
+                      //         PopupMenuButton<Locale>(
+                      //           tooltip: 'Language / Jezik',
+                      //           onSelected: (locale) => widget.onLanguageChange?.call(locale),
+                      //           offset: const Offset(0, -100),
+                      //           itemBuilder: (context) => [
+                      //             const PopupMenuItem(
+                      //               value: Locale('sr', ''),
+                      //               child: Row(
+                      //                 children: [
+                      //                   Text('🇷🇸'),
+                      //                   SizedBox(width: 8),
+                      //                   Text('Srpski'),
+                      //                 ],
+                      //               ),
+                      //             ),
+                      //             const PopupMenuItem(
+                      //               value: Locale('en', ''),
+                      //               child: Row(
+                      //                 children: [
+                      //                   Text('🇬🇧'),
+                      //                   SizedBox(width: 8),
+                      //                   Text('English'),
+                      //                 ],
+                      //               ),
+                      //             ),
+                      //           ],
+                      //           child: Container(
+                      //             padding: const EdgeInsets.all(12),
+                      //             decoration: BoxDecoration(
+                      //               color: Colors.white.withValues(alpha: 0.05),
+                      //               borderRadius: BorderRadius.circular(8),
+                      //             ),
+                      //             child: Row(
+                      //               children: [
+                      //                 Icon(
+                      //                   Icons.language,
+                      //                   color: Colors.grey[400],
+                      //                   size: 20,
+                      //                 ),
+                      //                 const SizedBox(width: 12),
+                      //                 Text(
+                      //                   Localizations.localeOf(context).languageCode == 'sr'
+                      //                       ? '🇷🇸 Srpski'
+                      //                       : '🇬🇧 English',
+                      //                   style: TextStyle(
+                      //                     color: Colors.grey[300],
+                      //                     fontSize: 14,
+                      //                   ),
+                      //                 ),
+                      //                 const Spacer(),
+                      //                 Icon(
+                      //                   Icons.keyboard_arrow_up,
+                      //                   color: Colors.grey[500],
+                      //                   size: 16,
+                      //                 ),
+                      //               ],
+                      //             ),
+                      //           ),
+                      //         ),
+                      //         const SizedBox(height: 12),
+                      //         Container(
+                      //           padding: const EdgeInsets.all(12),
+                      //           decoration: BoxDecoration(
+                      //             color: Colors.white.withValues(alpha: 0.05),
+                      //             borderRadius: BorderRadius.circular(8),
+                      //           ),
+                      //           child: Row(
+                      //             children: [
+                      //               Icon(
+                      //                 Icons.help_outline,
+                      //                 color: Colors.grey[400],
+                      //                 size: 20,
+                      //               ),
+                      //               const SizedBox(width: 12),
+                      //               Text(
+                      //                 'Pomoc i Podrška',
+                      //                 style: TextStyle(
+                      //                   color: Colors.grey[300],
+                      //                   fontSize: 14,
+                      //                 ),
+                      //               ),
+                      //             ],
+                      //           ),
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   ),
+                      // if (!_isSidebarCollapsed) const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
-                const VerticalDivider(width: 1),
                 Expanded(
-                  child: IndexedStack(index: _currentIndex, children: screens),
+                  child: Container(
+                    color: const Color.fromARGB(12, 30, 41, 59),
+                    child: IndexedStack(index: _currentIndex, children: screens),
+                  ),
                 ),
               ],
             )
-          : IndexedStack(index: _currentIndex, children: screens),
+          : Container(
+              color: const Color.fromARGB(12, 30, 41, 59),
+              child: IndexedStack(index: _currentIndex, children: screens),
+            ),
       bottomNavigationBar: isWideLayout
           ? null
           : NavigationBar(
@@ -1349,6 +1519,92 @@ class _PausalHomeState extends State<PausalHome> {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildPrimaryFab({
+    required String label,
+    required IconData icon,
+    required VoidCallback onPressed,
+    required String heroTag,
+  }) {
+    const buttonColor = Color(0xFF161C3A);
+
+    return FloatingActionButton.extended(
+      heroTag: heroTag,
+      onPressed: onPressed,
+      backgroundColor: buttonColor,
+      foregroundColor: Colors.white,
+      elevation: 6,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      extendedPadding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 12,
+      ),
+      extendedIconLabelSpacing: 10,
+      icon: Icon(icon, size: 18),
+      label: Text(
+        label,
+        style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 14,
+          letterSpacing: 0.1,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required bool isCollapsed,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: isCollapsed ? 12 : 16,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment:
+                  isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected ? Colors.white : Colors.grey[400],
+                  size: 20,
+                ),
+                if (!isCollapsed) const SizedBox(width: 12),
+                if (!isCollapsed)
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.grey[400],
+                      fontSize: 14,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

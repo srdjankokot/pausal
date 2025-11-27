@@ -383,11 +383,24 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
         }),
         Align(
           alignment: Alignment.centerRight,
-          child: Text(
-            'Ukupno: ${formatCurrency(_invoiceTotal)}',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Ukupno: ',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              buildCurrencyText(
+                context,
+                _invoiceTotal,
+                numberFontSize: 16,
+                currencyFontSize: 10,
+                numberWeight: FontWeight.bold,
+                numberColor: Colors.black87,
+              ),
+            ],
           ),
         ),
       ],

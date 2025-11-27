@@ -370,7 +370,7 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
-  String get overviewGreeting => 'Zdravo, paušalac!';
+  String get overviewGreeting => 'Dobrodošao, paušalac';
 
   @override
   String get overviewSubtitle =>
