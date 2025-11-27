@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:pausal_calculator/screens/app/client.dart';
 import 'package:pausal_calculator/screens/app/client_share.dart';
 import 'package:pausal_calculator/screens/app/lendger_entry.dart';
-import 'package:pausal_calculator/screens/app/pausal_home.dart';
 import 'package:pausal_calculator/utils.dart';
+import 'package:pausal_calculator/l10n/app_localizations.dart';
 
 class ClientsTab extends StatelessWidget {
   const ClientsTab({
@@ -23,6 +23,7 @@ class ClientsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final invoices = entries
         .where((entry) => entry.kind == LedgerKind.invoice)
         .toList();
@@ -51,7 +52,7 @@ class ClientsTab extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Klijenti',
+                l10n.clients,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -59,13 +60,13 @@ class ClientsTab extends StatelessWidget {
               FilledButton.icon(
                 onPressed: onAddClient,
                 icon: const Icon(Icons.person_add_alt),
-                label: const Text('Novi klijent'),
+                label: Text(l10n.newClient),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
-            'Vodite računa da nijedan klijent ne premaši 60% ukupnih prihoda.',
+            l10n.clientLimitNote,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
@@ -81,12 +82,12 @@ class ClientsTab extends StatelessWidget {
                     color: Colors.grey,
                   ),
                   const SizedBox(height: 12),
-                  const Text('Još uvek nema klijenata.'),
+                  Text(l10n.noClientsYet),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
                     onPressed: onAddClient,
                     icon: const Icon(Icons.person_add),
-                    label: const Text('Dodaj prvog klijenta'),
+                    label: Text(l10n.addFirstClient),
                   ),
                 ],
               ),
@@ -123,7 +124,7 @@ class ClientsTab extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'PIB: ${stat.client.pib.isEmpty ? 'N/A' : stat.client.pib}',
+                        '${l10n.pibLabel}${stat.client.pib.isEmpty ? l10n.pibNotAvailable : stat.client.pib}',
                       ),
                       Text(
                         stat.client.address,
@@ -145,7 +146,7 @@ class ClientsTab extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Udeo: ${percent.toStringAsFixed(1)}% · Računi: $invoiceCount · ${formatCurrency(stat.amount)}',
+                        l10n.clientStats(percent.toStringAsFixed(1), invoiceCount, formatCurrency(stat.amount)),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: exceedsThreshold
                               ? Colors.redAccent
@@ -163,10 +164,10 @@ class ClientsTab extends StatelessWidget {
                       }
                     },
                     itemBuilder: (context) => [
-                      const PopupMenuItem(value: 'edit', child: Text('Uredi')),
-                      const PopupMenuItem(
+                      PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
+                      PopupMenuItem(
                         value: 'delete',
-                        child: Text('Obriši'),
+                        child: Text(l10n.delete),
                       ),
                     ],
                   ),

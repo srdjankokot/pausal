@@ -26,13 +26,16 @@ import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../constants/app_constants.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/google_auth_service.dart';
 import '../../services/google_picker_service.dart';
 import '../../services/google_sheets_service.dart';
 import '../../storage/sync_metadata_storage.dart';
 
 class PausalHome extends StatefulWidget {
-  const PausalHome({super.key});
+  final void Function(Locale)? onLanguageChange;
+
+  const PausalHome({super.key, this.onLanguageChange});
 
   @override
   State<PausalHome> createState() => _PausalHomeState();
@@ -58,9 +61,10 @@ class _PausalHomeState extends State<PausalHome> {
       return true;
     }
     if (mounted) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Povežite Google Sheets pre nego što dodate podatke.'),
+        SnackBar(
+          content: Text(l10n.connectBeforeData),
         ),
       );
     }
@@ -284,9 +288,10 @@ class _PausalHomeState extends State<PausalHome> {
         debugPrint('Google Sheets sync failed: $error');
         debugPrint('$stack');
         if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Neuspešna sinhronizacija sa Google Sheets.'),
+            SnackBar(
+              content: Text(l10n.syncFailed),
             ),
           );
         }
@@ -354,11 +359,10 @@ class _PausalHomeState extends State<PausalHome> {
           );
       if (client == null) {
         if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Sesija je istekla. Prijavite se ponovo da biste nastavili.',
-              ),
+            SnackBar(
+              content: Text(l10n.sessionExpired),
             ),
           );
           setState(() {
@@ -369,6 +373,10 @@ class _PausalHomeState extends State<PausalHome> {
       }
 
       print(client);
+
+      if (!mounted) return;
+
+      final l10n = AppLocalizations.of(context)!;
       final service = GoogleSheetsService(
         client: client,
         spreadsheetId: _spreadsheetId!,
@@ -377,22 +385,24 @@ class _PausalHomeState extends State<PausalHome> {
         profileSheet: _profileSheetName,
       );
 
-      _setStructureProgress('Proveravamo strukturu tabele...', 0.2);
+      _setStructureProgress(l10n.checkingStructure, 0.2);
       await service.ensureStructure(
         onSheet: (sheetName, progress) {
           _setStructureProgress(
-            'Proveravamo strukturu sheet-a $sheetName',
+            l10n.checkingSheetStructure(sheetName),
             progress,
           );
         },
       );
-      _setStructureProgress('Struktura potvrđena', 1);
+      _setStructureProgress(l10n.loadingInvoices, 0.6);
+      final remoteEntries = await service.fetchEntries();
+      _setStructureProgress(l10n.loadingClients, 0.75);
+      final remoteClients = await service.fetchClients();
+      _setStructureProgress(l10n.loadingProfile, 0.9);
+      final remoteProfiles = await service.fetchProfiles();
+      _setStructureProgress(l10n.syncCompleted, 1);
       await Future<void>.delayed(const Duration(milliseconds: 200));
       _resetStructureProgress();
-
-      final remoteEntries = await service.fetchEntries();
-      final remoteClients = await service.fetchClients();
-      final remoteProfiles = await service.fetchProfiles();
 
       if (!mounted) {
         service.close();
@@ -428,11 +438,10 @@ class _PausalHomeState extends State<PausalHome> {
       debugPrint('Silent session restore failed: $error');
       debugPrint('$stack');
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Automatsko povezivanje Google Sheets naloga nije uspelo.',
-            ),
+          SnackBar(
+            content: Text(l10n.autoConnectFailed),
           ),
         );
       }
@@ -494,8 +503,9 @@ class _PausalHomeState extends State<PausalHome> {
     final client = _findClient(entry.clientId);
     if (client == null) {
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dodajte klijenta pre štampe fakture.')),
+        SnackBar(content: Text(l10n.addClientBeforePrint)),
       );
       return;
     }
@@ -516,8 +526,9 @@ class _PausalHomeState extends State<PausalHome> {
     final client = _findClient(entry.clientId);
     if (client == null) {
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dodajte klijenta pre slanja fakture.')),
+        SnackBar(content: Text(l10n.addClientBeforeSend)),
       );
       return;
     }
@@ -534,11 +545,19 @@ class _PausalHomeState extends State<PausalHome> {
       name: fileName,
       mimeType: 'application/pdf',
     );
+
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+
     await Share.shareXFiles(
       [shareFile],
       subject: entry.title,
-      text:
-          'Faktura ${entry.invoiceNumber?.isNotEmpty == true ? entry.invoiceNumber : entry.title} za ${client.name} iznosi ${formatCurrency(entry.amount)}.\nUplata na račun: ${_companyProfile.accountNumber}.',
+      text: l10n.invoiceShareText(
+        entry.invoiceNumber?.isNotEmpty == true ? entry.invoiceNumber! : entry.title,
+        client.name,
+        formatCurrency(entry.amount),
+        _companyProfile.accountNumber,
+      ),
     );
   }
 
@@ -580,9 +599,10 @@ class _PausalHomeState extends State<PausalHome> {
           );
       if (client == null) {
         if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Greška pri autentifikaciji Google naloga.'),
+            SnackBar(
+              content: Text(l10n.authError),
             ),
           );
           setState(() {
@@ -615,22 +635,30 @@ class _PausalHomeState extends State<PausalHome> {
         profileSheet: profileSheet,
       );
 
-      _setStructureProgress('Proveravamo strukturu tabele...', 0.2);
+      if (!mounted) {
+        service.close();
+        return;
+      }
+
+      final l10n = AppLocalizations.of(context)!;
+      _setStructureProgress(l10n.checkingStructure, 0.2);
       await service.ensureStructure(
         onSheet: (sheetName, progress) {
           _setStructureProgress(
-            'Proveravamo strukturu sheet-a $sheetName',
+            l10n.checkingSheetStructure(sheetName),
             progress,
           );
         },
       );
-      _setStructureProgress('Struktura potvrđena', 1);
+      _setStructureProgress(l10n.structureConfirmed, 0.6);
+      final remoteEntries = await service.fetchEntries();
+      _setStructureProgress(l10n.loadingClients, 0.75);
+      final remoteClients = await service.fetchClients();
+      _setStructureProgress(l10n.loadingProfile, 0.9);
+      final remoteProfiles = await service.fetchProfiles();
+      _setStructureProgress(l10n.syncCompleted, 1);
       await Future<void>.delayed(const Duration(milliseconds: 200));
       _resetStructureProgress();
-
-      final remoteEntries = await service.fetchEntries();
-      final remoteClients = await service.fetchClients();
-      final remoteProfiles = await service.fetchProfiles();
 
       if (!mounted) {
         service.close();
@@ -677,12 +705,15 @@ class _PausalHomeState extends State<PausalHome> {
       if (config.createNew) {
         _pushDataToSheets(SheetSyncTarget.values.toSet());
       }
+
+      if (!mounted) return;
+      final l10nSuccess = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             config.createNew
-                ? 'Kreiran je novi Google Sheet (${spreadsheetId}).'
-                : 'Google Sheets sinhronizacija aktivirana (${spreadsheetId}).',
+                ? l10nSuccess.sheetCreatedSuccess(spreadsheetId)
+                : l10nSuccess.sheetConnectedSuccess(spreadsheetId),
           ),
         ),
       );
@@ -691,9 +722,10 @@ class _PausalHomeState extends State<PausalHome> {
       debugPrint('$stack');
       service?.close();
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Neuspešno povezivanje sa Google Sheets.'),
+          SnackBar(
+            content: Text(l10n.connectFailed),
           ),
         );
         setState(() {
@@ -747,6 +779,9 @@ class _PausalHomeState extends State<PausalHome> {
     bool isPickingSpreadsheet = false;
     var isDialogMounted = true;
 
+    if (!mounted) return null;
+    final l10n = AppLocalizations.of(context)!;
+
     final result = await showDialog<SpreadsheetConfig>(
       context: context,
       builder: (dialogContext) {
@@ -759,10 +794,8 @@ class _PausalHomeState extends State<PausalHome> {
               if (kGooglePickerApiKey.isEmpty) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Google Picker API ključ nije konfigurisan.',
-                      ),
+                    SnackBar(
+                      content: Text(l10n.pickerApiKeyNotConfigured),
                     ),
                   );
                 }
@@ -772,10 +805,8 @@ class _PausalHomeState extends State<PausalHome> {
               if (token == null) {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Greška pri autentifikaciji Google naloga.',
-                      ),
+                    SnackBar(
+                      content: Text(l10n.authError),
                     ),
                   );
                 }
@@ -805,10 +836,8 @@ class _PausalHomeState extends State<PausalHome> {
                 debugPrint('$stack');
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Nije moguće učitati Google Picker. Pokušajte ponovo.',
-                      ),
+                    SnackBar(
+                      content: Text(l10n.pickerLoadError),
                     ),
                   );
                 }
@@ -822,7 +851,7 @@ class _PausalHomeState extends State<PausalHome> {
             }
 
             return AlertDialog(
-              title: const Text('Povezivanje sa Google Sheet-om'),
+              title: Text(l10n.connectDialogTitle),
               content: Form(
                 key: formKey,
                 child: SingleChildScrollView(
@@ -832,10 +861,8 @@ class _PausalHomeState extends State<PausalHome> {
                       SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,
                         value: createNew,
-                        title: const Text('Kreiraj novi Google Sheet'),
-                        subtitle: const Text(
-                          'Aplikacija će automatski kreirati dokument i radne listove.',
-                        ),
+                        title: Text(l10n.createNewSheet),
+                        subtitle: Text(l10n.createNewSheetSubtitle),
                         onChanged: (value) {
                           setDialogState(() {
                             createNew = value;
@@ -846,16 +873,16 @@ class _PausalHomeState extends State<PausalHome> {
                       if (createNew)
                         TextFormField(
                           controller: titleController,
-                          decoration: const InputDecoration(
-                            labelText: 'Naziv dokumenta',
-                            hintText: 'Paušal kalkulator',
+                          decoration: InputDecoration(
+                            labelText: l10n.documentName,
+                            hintText: l10n.documentNameHint,
                           ),
                           validator: (value) {
                             if (!createNew) {
                               return null;
                             }
                             if (value == null || value.trim().isEmpty) {
-                              return 'Unesite naziv dokumenta';
+                              return l10n.enterDocumentName;
                             }
                             return null;
                           },
@@ -865,13 +892,13 @@ class _PausalHomeState extends State<PausalHome> {
                           controller: idController,
                           readOnly: true,
                           decoration: InputDecoration(
-                            labelText: 'Google Sheet dokument',
-                            hintText: 'Izaberite Google Sheets dokument',
+                            labelText: l10n.googleSheetDocument,
+                            hintText: l10n.selectGoogleSheetDocument,
                             helperText: pickedSpreadsheetName == null
-                                ? 'Kliknite na ikonu desno kako biste izabrali dokument.'
-                                : 'Odabrano: $pickedSpreadsheetName',
+                                ? l10n.clickToSelectDocument
+                                : l10n.selected(pickedSpreadsheetName!),
                             suffixIcon: IconButton(
-                              tooltip: 'Izaberi iz Google Drive-a',
+                              tooltip: l10n.selectFromDrive,
                               onPressed: isPickingSpreadsheet ||
                                       kGooglePickerApiKey.isEmpty
                                   ? null
@@ -904,7 +931,7 @@ class _PausalHomeState extends State<PausalHome> {
                               return null;
                             }
                             if (value == null || value.trim().isEmpty) {
-                              return 'Izaberite Google Sheet dokument';
+                              return l10n.selectGoogleSheetDocument;
                             }
                             return null;
                           },
@@ -912,17 +939,16 @@ class _PausalHomeState extends State<PausalHome> {
                       else
                         TextFormField(
                           controller: idController,
-                          decoration: const InputDecoration(
-                            labelText: 'Spreadsheet URL ili ID',
-                            hintText:
-                                'https://docs.google.com/... ili 1A2B3C...',
+                          decoration: InputDecoration(
+                            labelText: l10n.spreadsheetUrlOrId,
+                            hintText: l10n.spreadsheetUrlHint,
                           ),
                           validator: (value) {
                             if (createNew) {
                               return null;
                             }
                             if (_extractSpreadsheetId(value) == null) {
-                              return 'Unesite pun URL ili ID Google Sheets dokumenta';
+                              return l10n.enterFullUrlOrId;
                             }
                             return null;
                           },
@@ -930,22 +956,22 @@ class _PausalHomeState extends State<PausalHome> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: expensesController,
-                        decoration: const InputDecoration(
-                          labelText: 'Sheet za troškove',
+                        decoration: InputDecoration(
+                          labelText: l10n.sheetForExpenses,
                         ),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: clientsController,
-                        decoration: const InputDecoration(
-                          labelText: 'Sheet za klijente',
+                        decoration: InputDecoration(
+                          labelText: l10n.sheetForClients,
                         ),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: profileController,
-                        decoration: const InputDecoration(
-                          labelText: 'Sheet za profil',
+                        decoration: InputDecoration(
+                          labelText: l10n.sheetForProfile,
                         ),
                       ),
                     ],
@@ -955,7 +981,7 @@ class _PausalHomeState extends State<PausalHome> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Otkaži'),
+                  child: Text(l10n.cancel),
                 ),
                 FilledButton(
                   onPressed: () {
@@ -991,7 +1017,7 @@ class _PausalHomeState extends State<PausalHome> {
                           );
                     Navigator.of(dialogContext).pop(config);
                   },
-                  child: const Text('Poveži'),
+                  child: Text(l10n.connect),
                 ),
               ],
             );
@@ -1011,6 +1037,7 @@ class _PausalHomeState extends State<PausalHome> {
     final isWideLayout = mediaQuery.size.width >= 900;
     final isRailExtended = mediaQuery.size.width >= 1200;
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     final screens = _isConnected
         ? [
@@ -1085,18 +1112,40 @@ class _PausalHomeState extends State<PausalHome> {
         floatingActionButton = FloatingActionButton.extended(
           onPressed: () => _openEntrySheet(),
           icon: const Icon(Icons.add),
-          label: const Text('Nova stavka'),
+          label: Text(l10n.fabNewEntry),
         );
       } else if (_currentIndex == 2) {
         floatingActionButton = FloatingActionButton.extended(
           onPressed: () => _openClientSheet(),
           icon: const Icon(Icons.person_add),
-          label: const Text('Novi klijent'),
+          label: Text(l10n.fabNewClient),
         );
       }
     }
 
     final scaffold = Scaffold(
+      appBar: AppBar(
+        title: const Text(''),
+        actions: [
+          // Language selector
+          PopupMenuButton<Locale>(
+            tooltip: 'Language / Jezik',
+            icon: const Icon(Icons.language),
+            onSelected: (locale) => widget.onLanguageChange?.call(locale),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: Locale('sr', ''),
+                child: Text('🇷🇸 Srpski'),
+              ),
+              const PopupMenuItem(
+                value: Locale('en', ''),
+                child: Text('🇬🇧 English'),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: isWideLayout
           ? Row(
               children: [
@@ -1110,26 +1159,26 @@ class _PausalHomeState extends State<PausalHome> {
                       ? NavigationRailLabelType.none
                       : NavigationRailLabelType.selected,
                   leading: const SizedBox(height: 8),
-                  destinations: const [
+                  destinations: [
                     NavigationRailDestination(
-                      icon: Icon(Icons.dashboard_outlined),
-                      selectedIcon: Icon(Icons.dashboard),
-                      label: Text('Pregled'),
+                      icon: const Icon(Icons.dashboard_outlined),
+                      selectedIcon: const Icon(Icons.dashboard),
+                      label: Text(l10n.navOverview),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.receipt_long_outlined),
-                      selectedIcon: Icon(Icons.receipt_long),
-                      label: Text('Knjiga'),
+                      icon: const Icon(Icons.receipt_long_outlined),
+                      selectedIcon: const Icon(Icons.receipt_long),
+                      label: Text(l10n.navLedger),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.people_alt_outlined),
-                      selectedIcon: Icon(Icons.people),
-                      label: Text('Klijenti'),
+                      icon: const Icon(Icons.people_alt_outlined),
+                      selectedIcon: const Icon(Icons.people),
+                      label: Text(l10n.navClients),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.settings_outlined),
-                      selectedIcon: Icon(Icons.settings),
-                      label: Text('Profil'),
+                      icon: const Icon(Icons.settings_outlined),
+                      selectedIcon: const Icon(Icons.settings),
+                      label: Text(l10n.navProfile),
                     ),
                   ],
                 ),
@@ -1149,26 +1198,26 @@ class _PausalHomeState extends State<PausalHome> {
                   _currentIndex = index;
                 });
               },
-              destinations: const [
+              destinations: [
                 NavigationDestination(
-                  icon: Icon(Icons.dashboard_outlined),
-                  selectedIcon: Icon(Icons.dashboard),
-                  label: 'Pregled',
+                  icon: const Icon(Icons.dashboard_outlined),
+                  selectedIcon: const Icon(Icons.dashboard),
+                  label: l10n.navOverview,
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.receipt_long_outlined),
-                  selectedIcon: Icon(Icons.receipt_long),
-                  label: 'Knjiga',
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  selectedIcon: const Icon(Icons.receipt_long),
+                  label: l10n.navLedger,
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.people_alt_outlined),
-                  selectedIcon: Icon(Icons.people),
-                  label: 'Klijenti',
+                  icon: const Icon(Icons.people_alt_outlined),
+                  selectedIcon: const Icon(Icons.people),
+                  label: l10n.navClients,
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.settings_outlined),
-                  selectedIcon: Icon(Icons.settings),
-                  label: 'Profil',
+                  icon: const Icon(Icons.settings_outlined),
+                  selectedIcon: const Icon(Icons.settings),
+                  label: l10n.navProfile,
                 ),
               ],
             ),
@@ -1210,7 +1259,9 @@ class _PausalHomeState extends State<PausalHome> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Proveravamo strukturu tabele...',
+                            _structureStatus.isEmpty
+                                ? l10n.syncingWithSheets
+                                : _structureStatus,
                             style: theme.textTheme.titleMedium,
                           ),
                           const SizedBox(height: 12),
@@ -1226,8 +1277,8 @@ class _PausalHomeState extends State<PausalHome> {
                               Flexible(
                                 child: Text(
                                   _structureStatus.isEmpty
-                                      ? 'Proveravamo radne listove i zaglavlja...'
-                                      : _structureStatus,
+                                      ? l10n.checkingSheetsHeaders
+                                      : l10n.loadingData,
                                   style: theme.textTheme.bodyMedium,
                                 ),
                               ),
@@ -1278,13 +1329,13 @@ class _PausalHomeState extends State<PausalHome> {
                         const CircularProgressIndicator(),
                         const SizedBox(height: 16),
                         Text(
-                          'Snimam podatke u Google Sheets…',
+                          l10n.savingToSheets,
                           style: theme.textTheme.titleMedium,
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Molimo sačekajte dok se sinhronizacija ne završi.',
+                          l10n.waitForSync,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),

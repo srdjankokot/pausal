@@ -5,6 +5,7 @@ import 'package:pausal_calculator/screens/app/client.dart';
 import 'package:pausal_calculator/screens/app/lendger_entry.dart';
 import 'package:pausal_calculator/screens/app/tabs/ledger/ledger_section.dart';
 import 'package:pausal_calculator/utils.dart';
+import 'package:pausal_calculator/l10n/app_localizations.dart';
 
 class LedgerTab extends StatefulWidget {
   const LedgerTab({
@@ -42,6 +43,7 @@ class _LedgerTabState extends State<LedgerTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final invoices = widget.entries
         .where((entry) => entry.kind == LedgerKind.invoice)
         .toList();
@@ -54,10 +56,10 @@ class _LedgerTabState extends State<LedgerTab> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
         children: [
-          if (invoices.isNotEmpty) _buildFilterCard(invoices),
+          if (invoices.isNotEmpty) _buildFilterCard(invoices, l10n),
           if (invoices.isNotEmpty) const SizedBox(height: 16),
           LedgerSection(
-            title: 'Izdati računi',
+            title: l10n.invoices,
             icon: Icons.trending_up,
             iconColor: Colors.green[600]!,
             entries: filteredInvoices,
@@ -69,7 +71,7 @@ class _LedgerTabState extends State<LedgerTab> {
           ),
           const SizedBox(height: 24),
           LedgerSection(
-            title: 'Troškovi',
+            title: l10n.expenses,
             icon: Icons.trending_down,
             iconColor: pastelBlueDark,
             entries: expenses,
@@ -94,7 +96,7 @@ class _LedgerTabState extends State<LedgerTab> {
     return matchesYear && matchesMonth && matchesClient;
   }
 
-  Widget _buildFilterCard(List<LedgerEntry> invoices) {
+  Widget _buildFilterCard(List<LedgerEntry> invoices, AppLocalizations l10n) {
     final years = invoices.map((e) => e.date.year).toSet().toList()..sort();
     final months = _availableMonths(invoices, _selectedYear);
     final clientItems = widget.clients
@@ -116,7 +118,7 @@ class _LedgerTabState extends State<LedgerTab> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Filteri',
+                  l10n.filters,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -130,7 +132,7 @@ class _LedgerTabState extends State<LedgerTab> {
                         _selectedClientId = null;
                       });
                     },
-                    child: const Text('Obriši filtere'),
+                    child: Text(l10n.clearFilters),
                   ),
               ],
             ),
@@ -143,14 +145,14 @@ class _LedgerTabState extends State<LedgerTab> {
                   width: 180,
                   child: DropdownButtonFormField<int?>(
                     value: _selectedYear,
-                    decoration: const InputDecoration(
-                      labelText: 'Godina',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.year,
+                      border: const OutlineInputBorder(),
                     ),
                     items: [
-                      const DropdownMenuItem<int?>(
+                      DropdownMenuItem<int?>(
                         value: null,
-                        child: Text('Sve godine'),
+                        child: Text(l10n.allYears),
                       ),
                       ...years.map(
                         (year) => DropdownMenuItem<int?>(
@@ -175,14 +177,14 @@ class _LedgerTabState extends State<LedgerTab> {
                   width: 200,
                   child: DropdownButtonFormField<int?>(
                     value: _selectedMonth,
-                    decoration: const InputDecoration(
-                      labelText: 'Mesec',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.month,
+                      border: const OutlineInputBorder(),
                     ),
                     items: [
-                      const DropdownMenuItem<int?>(
+                      DropdownMenuItem<int?>(
                         value: null,
-                        child: Text('Svi meseci'),
+                        child: Text(l10n.allMonths),
                       ),
                       ...months.map(
                         (month) => DropdownMenuItem<int?>(
@@ -202,14 +204,14 @@ class _LedgerTabState extends State<LedgerTab> {
                   width: double.maxFinite,
                   child: DropdownButtonFormField<String?>(
                     initialValue: _selectedClientId,
-                    decoration: const InputDecoration(
-                      labelText: 'Klijent',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.client,
+                      border: const OutlineInputBorder(),
                     ),
                     items: [
-                      const DropdownMenuItem<String?>(
+                      DropdownMenuItem<String?>(
                         value: null,
-                        child: Text('Svi klijenti'),
+                        child: Text(l10n.allClients),
                       ),
                       ...clientItems,
                     ],

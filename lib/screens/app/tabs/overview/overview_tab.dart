@@ -3,11 +3,11 @@ import 'package:pausal_calculator/constants/app_constants.dart';
 import 'package:pausal_calculator/screens/app/client.dart';
 import 'package:pausal_calculator/screens/app/client_share.dart';
 import 'package:pausal_calculator/screens/app/lendger_entry.dart';
-import 'package:pausal_calculator/screens/app/pausal_home.dart';
 import 'package:pausal_calculator/screens/app/tabs/overview/contribution_row.dart';
 import 'package:pausal_calculator/screens/app/tabs/overview/overview_row.dart';
 import 'package:pausal_calculator/screens/app/tax_profile.dart';
 import 'package:pausal_calculator/utils.dart';
+import 'package:pausal_calculator/l10n/app_localizations.dart';
 
 class OverviewTab extends StatelessWidget {
   const OverviewTab({
@@ -23,6 +23,7 @@ class OverviewTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final invoices = entries
         .where((entry) => entry.kind == LedgerKind.invoice)
         .toList();
@@ -103,7 +104,7 @@ class OverviewTab extends StatelessWidget {
         (c) => c.id == entry.key,
         orElse: () => Client(
           id: entry.key,
-          name: 'Nepoznat klijent',
+          name: l10n.unknownClient,
           pib: '',
           address: '',
         ),
@@ -141,14 +142,14 @@ class OverviewTab extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
         children: [
           Text(
-            'Zdravo, paušalac!',
+            l10n.overviewGreeting,
             style: Theme.of(
               context,
             ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
-            'Praćenje prihoda, troškova i limita paušalnog oporezivanja.',
+            l10n.overviewSubtitle,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
@@ -161,35 +162,35 @@ class OverviewTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Ukupno',
+                    l10n.total,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 16),
                   OverviewRow(
-                    label: 'Izdati računi',
+                    label: l10n.issuedInvoices,
                     value: formatCurrency(totalInvoiced),
                     icon: Icons.trending_up,
                     iconColor: Colors.green[600]!,
                   ),
                   const SizedBox(height: 12),
                   OverviewRow(
-                    label: 'Troškovi',
+                    label: l10n.expenses,
                     value: formatCurrency(totalExpenses),
                     icon: Icons.shopping_bag,
                     iconColor: pastelBlueDark,
                   ),
                   const SizedBox(height: 12),
                   OverviewRow(
-                    label: 'Obaveze paušala',
+                    label: l10n.taxObligations,
                     value: formatCurrency(totalObligations),
                     icon: Icons.account_balance_wallet,
                     iconColor: Colors.blue[600]!,
                   ),
                   const Divider(height: 32),
                   OverviewRow(
-                    label: 'Procenjeni neto',
+                    label: l10n.estimatedNet,
                     value: formatCurrency(netIncome),
                     icon: Icons.payments,
                     iconColor: Colors.purple[600]!,
@@ -206,14 +207,14 @@ class OverviewTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Udeo prihoda po klijentima u $currentYear. godini',
+                    l10n.revenueShareByClientYear(currentYear.toString()),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 12),
                   if (clientShares.isEmpty)
-                    const Text('Još uvek nema povezanih klijenata.')
+                    Text(l10n.noConnectedClients)
                   else
                     ...clientShares.map((share) {
                       final percent = (share.share * 100).clamp(0, 100);
@@ -289,7 +290,7 @@ class OverviewTab extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Pazite da pojedinačan klijent ne premaši 60% ukupnih prihoda.',
+                              l10n.clientLimitWarning,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: Colors.redAccent[400]),
                             ),
@@ -309,7 +310,7 @@ class OverviewTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Limit u poslednjih 12 meseci',
+                    l10n.rollingLimit,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -328,7 +329,7 @@ class OverviewTab extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Preostalo do limita'),
+                          Text(l10n.remainingToLimit),
                           const SizedBox(height: 4),
                           Text(
                             formatCurrency(rollingRemaining as double),
@@ -340,7 +341,7 @@ class OverviewTab extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Text('Ograničenje 12m'),
+                          Text(l10n.rollingLimitCap),
                           const SizedBox(height: 4),
                           Text(
                             formatCurrency(profile.rollingLimit),
@@ -353,7 +354,7 @@ class OverviewTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Obuhvaćen period: ${formatDate(rollingWindowStart)} - ${formatDate(now)}',
+                    l10n.periodCovered(formatDate(rollingWindowStart), formatDate(now)),
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
@@ -370,7 +371,7 @@ class OverviewTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Godišnji limit',
+                    l10n.annualLimit,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -389,7 +390,7 @@ class OverviewTab extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Preostalo do limita'),
+                          Text(l10n.remainingToLimit),
                           const SizedBox(height: 4),
                           Text(
                             formatCurrency(remainingLimit as double),
@@ -401,7 +402,7 @@ class OverviewTab extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Text('Ukupan limit'),
+                          Text(l10n.totalLimit),
                           const SizedBox(height: 4),
                           Text(
                             formatCurrency(profile.annualLimit),
@@ -424,29 +425,29 @@ class OverviewTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Mesečne obaveze',
+                    l10n.monthlyObligations,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 16),
                   ContributionRow(
-                    label: 'PIO doprinos',
+                    label: l10n.pensionContribution,
                     value: formatCurrency(profile.monthlyPension),
                   ),
                   const SizedBox(height: 12),
                   ContributionRow(
-                    label: 'Zdravstveno osiguranje',
+                    label: l10n.healthInsurance,
                     value: formatCurrency(profile.monthlyHealth),
                   ),
                   const SizedBox(height: 12),
                   ContributionRow(
-                    label: 'Akontacija poreza',
+                    label: l10n.taxPrepayment,
                     value: formatCurrency(profile.monthlyTaxPrepayment),
                   ),
                   const SizedBox(height: 12),
                   ContributionRow(
-                    label: 'Ukupno mesečno',
+                    label: l10n.totalMonthly,
                     value: formatCurrency(profile.monthlyFixedContributions),
                     emphasize: true,
                   ),
@@ -462,14 +463,14 @@ class OverviewTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Poslednje aktivnosti',
+                    l10n.recentActivity,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 12),
                   if (latestEntries.isEmpty)
-                    const Text('Još uvek nema zabeleženih stavki.')
+                    Text(l10n.noEntriesYet)
                   else
                     ...latestEntries
                         .take(5)

@@ -1,0 +1,377 @@
+{
+  "@@locale": "sr",
+
+  "appTitle": "Paušal kalkulator",
+  "@appTitle": {
+    "description": "Application title"
+  },
+
+  "save": "Sačuvaj",
+  "saveChanges": "Sačuvaj promene",
+  "saveItem": "Sačuvaj stavku",
+  "cancel": "Otkaži",
+  "delete": "Obriši",
+  "edit": "Uredi",
+  "connect": "Poveži",
+  "disconnect": "Prekini vezu",
+  "loading": "Povezivanje...",
+
+  "landingTitle": "Paušal kalkulator",
+  "landingSubtitle": "Digitalni asistent za paušalno oporezovane preduzetnike koji razvija Finaccons.",
+  "privacyPolicy": "Privacy Policy",
+  "launchApp": "Pokreni aplikaciju",
+
+  "whatAppDoes": "Šta aplikacija radi",
+  "featureOverviewTitle": "Pregled poslovanja",
+  "featureOverviewDesc": "Automatski izračunava promet, troškove, neto prihod i poreske obaveze po osnovu paušalnog oporezivanja.",
+  "featureClientsTitle": "Upravljanje klijentima",
+  "featureClientsDesc": "Pratite prihod po klijentu, evidentirajte ugovore i vodite računa o propisanim limitima.",
+  "featureInvoicingTitle": "Fakturisanje",
+  "featureInvoicingDesc": "Kreirajte PDF fakture u skladu sa lokalnim propisima i delite ih direktno iz aplikacije.",
+
+  "whatsNew": "Šta je novo",
+  "featureSyncTitle": "Google Sheets sinhronizacija",
+  "featureSyncDesc": "Podaci se povezuju direktno sa vašim Google Sheets dokumentom – aplikacija čita i ažurira isti fajl bez manualnog export/import procesa.",
+  "featureOnboardingTitle": "Jednostavan onboarding",
+  "featureOnboardingDesc": "Povežite postojeći sheet ili kreirajte novi dokument sa svim potrebnim listovima: troškovi, klijenti i profil firme.",
+  "featureDataControlTitle": "Potpuna kontrola podataka",
+  "featureDataControlDesc": "Podaci ostaju u vašem Google nalogu. Aplikacija koristi samo one dozvole koje ste eksplicitno odobrili.",
+
+  "importantLinks": "Važni linkovi",
+  "linkPrivacyTitle": "Politika privatnosti",
+  "linkPrivacyDesc": "Detaljno objašnjava koje Google naloge i Sheets dozvole koristimo i zašto.",
+  "linkSupportTitle": "Kontakt podrška",
+  "linkSupportDesc": "Pišite na pausal@finaccons.rs za pomoć u podešavanju ili prijavu grešaka.",
+  "linkRoadmapTitle": "Plan razvoja",
+  "linkRoadmapDesc": "Dodavanje analitike po klijentu, eksport u XML/JPKD format i još mnogo toga.",
+
+  "privacyPolicyTitle": "Politika privatnosti",
+  "privacyPolicyFullTitle": "Politika privatnosti – Paušal kalkulator",
+  "privacyIntro": "Ova politika privatnosti objašnjava kako Paušal kalkulator koristi i štiti podatke kada se korisnik prijavi putem Google naloga i poveže svoj Google Sheets dokument radi obračuna i praćenja poslovanja.",
+
+  "privacySectionDataAccess": "Podaci kojima pristupamo",
+  "privacyGoogleAccountTitle": "Google nalog (openid)",
+  "privacyGoogleAccountDesc": "Koristimo \"openid\" dozvolu kako bismo vas bezbedno prijavili u aplikaciju i povezali vaš nalog sa jedinstvenim identifikatorom koji dobijamo od Google-a. Ne koristimo i ne čuvamo vašu e-mail adresu za potrebe aplikacije.",
+  "privacyGoogleSheetsTitle": "Google Sheets fajl koji izaberete",
+  "privacyGoogleSheetsDesc": "Aplikacija koristi Google Picker i \"drive.file\" dozvolu kako bi vam omogućila da ručno izaberete konkretan Google Sheets fajl. Nakon toga Paušal kalkulator koristi Google Sheets API kako bi čitao vrednosti ćelija, dodavao nove redove, ažurirao određene opsege i čistio opsege isključivo u tom dokumentu (npr. prihodi, troškovi, klijenti). Aplikacija nema pristup drugim dokumentima na vašem Google nalogu.",
+
+  "privacySectionScopes": "Google API dozvole (scopes)",
+  "privacyScopesDetails": "Paušal kalkulator koristi sledeće Google API dozvole koje su neophodne za rad aplikacije:\n\n• openid – za bezbednu prijavu korisnika.\n• https://www.googleapis.com/auth/spreadsheets – za čitanje i ažuriranje sadržaja Google Sheets dokumenta (čitanje opsega, dodavanje redova, ažuriranje i brisanje opsega ćelija).\n• https://www.googleapis.com/auth/drive.file – za izbor konkretnog fajla na Google Drive-u putem Google Picker-a.\n\nNe koristimo dozvole \"email\" niti druge osetljive ili ograničene Google API dozvole koje nisu neophodne za funkcionisanje aplikacije. Pristup ograničavamo isključivo na dokument koji korisnik ručno odabere i na opsege koje aplikacija ažurira radi obračuna podataka.",
+
+  "privacySectionDataUse": "Kako koristimo podatke",
+  "privacyDataUseDetails": "Pristup Google nalogu i odabranom Google Sheets dokumentu koristimo isključivo da bismo:\n\n• omogućili prijavu u aplikaciju,\n• pročitali podatke iz odabranog Sheets fajla radi obračuna i prikaza u aplikaciji,\n• upisali nove unose, dodali redove, očistili određene opsege i ažurirali samo potrebne delove dokumenta radi ažurnog vođenja evidencije.\n\nNe koristimo vaše Google podatke za oglašavanje, marketing ili pravljenje korisničkih profila. Ne prodajemo i ne iznajmljujemo vaše podatke trećim stranama i ne koristimo podatke iz Google Drive/Sheets fajlova za obučavanje opštih AI/ML modela.",
+
+  "privacySectionDataProtection": "Čuvanje, zaštita i deljenje podataka",
+  "privacyDataProtectionDetails": "Sadržaj vaših Google Sheets dokumenata ostaje u okviru vašeg Google naloga. Aplikacija te podatke čita \"na zahtev\" i, po potrebi, kratkotrajno kešira radi performansi. Takvi podaci se čuvaju najkraće moguće vreme i zaštićeni su odgovarajućim tehničkim merama (HTTPS/TLS, kontrola pristupa itd.).\n\nPodatke ne delimo sa trećim stranama osim sa pouzdanim tehničkim provajderima (npr. hosting), i to isključivo u meri u kojoj je neophodno za rad aplikacije, uz ugovornu obavezu zaštite podataka.",
+
+  "privacySectionUserRights": "Vaša prava i brisanje podataka",
+  "privacyUserRightsDetails": "Pristup aplikaciji možete opozvati u bilo kom trenutku preko stranice vašeg Google naloga:\nhttps://myaccount.google.com/permissions\n\nTakođe, možete nam se obratiti ukoliko želite da obrišemo podatke koji se čuvaju u okviru same aplikacije (npr. lokalne konfiguracije). Nakon potvrde identiteta, obrišaćemo ili anonimizovati podatke, osim onih koje smo zakonski obavezni da zadržimo (npr. knjigovodstvena evidencija).",
+
+  "privacySectionContact": "Pitanja i kontakt",
+  "privacyContactDetails": "Ako imate pitanja u vezi sa politikom privatnosti ili načinom na koji aplikacija obrađuje podatke, možete nas kontaktirati na:",
+  "privacyContactEmail": "pausal@finaccons.rs",
+  "privacyLastUpdated": "Poslednje ažuriranje: 14.11.2025.",
+
+  "navOverview": "Pregled",
+  "navLedger": "Knjiga",
+  "navClients": "Klijenti",
+  "navProfile": "Profil",
+
+  "googleSheetsSync": "Google Sheets sinhronizacija",
+  "connectGoogleSheets": "Poveži Google Sheets",
+  "connectSheetHeading": "Povežite Google Sheets nalog",
+  "connectSheetDescription": "Za unos faktura, troškova i klijenata potrebno je da povežete svoj Google Sheets dokument.",
+  "connectSheetPlaceholder": "Povežite se sa Google Sheets nalogom da biste čuvali podatke o firmi i porezima.",
+  "connectBeforeData": "Povežite Google Sheets pre nego što dodate podatke.",
+  "connectedAs": "Povezano kao ",
+  "googleAccount": "Google nalog",
+  "dataSavedInSheets": "Podaci se čuvaju direktno u Google Sheet-u. Povežite se kako biste mogli da kreirate stavke.",
+
+  "connectDialogTitle": "Povezivanje sa Google Sheet-om",
+  "createNewSheet": "Kreiraj novi Google Sheet",
+  "createNewSheetSubtitle": "Aplikacija će automatski kreirati dokument i radne listove.",
+  "documentName": "Naziv dokumenta",
+  "documentNameHint": "Paušal kalkulator",
+  "enterDocumentName": "Unesite naziv dokumenta",
+  "googleSheetDocument": "Google Sheet dokument",
+  "selectGoogleSheetDocument": "Izaberite Google Sheets dokument",
+  "clickToSelectDocument": "Kliknite na ikonu desno kako biste izabrali dokument.",
+  "selectFromDrive": "Izaberi iz Google Drive-a",
+  "spreadsheetUrlOrId": "Spreadsheet URL ili ID",
+  "spreadsheetUrlHint": "https://docs.google.com/... ili 1A2B3C...",
+  "enterFullUrlOrId": "Unesite pun URL ili ID Google Sheets dokumenta",
+  "sheetForExpenses": "Sheet za troškove",
+  "sheetForClients": "Sheet za klijente",
+  "sheetForProfile": "Sheet za profil",
+
+  "checkingStructure": "Proveravamo strukturu tabele...",
+  "checkingSheetStructure": "Proveravamo strukturu sheet-a {sheetName}",
+  "@checkingSheetStructure": {
+    "placeholders": {
+      "sheetName": {
+        "type": "String"
+      }
+    }
+  },
+  "structureConfirmed": "Struktura potvrđena",
+  "loadingInvoices": "Učitavamo fakture...",
+  "loadingClients": "Učitavamo klijente...",
+  "loadingProfile": "Učitavamo profil...",
+  "syncCompleted": "Sinhronizacija završena",
+  "syncingWithSheets": "Sinhronizacija sa Google Sheets...",
+  "checkingSheetsHeaders": "Proveravamo radne listove i zaglavlja...",
+  "loadingData": "U toku je učitavanje podataka.",
+  "savingToSheets": "Snimam podatke u Google Sheets…",
+  "waitForSync": "Molimo sačekajte dok se sinhronizacija ne završi.",
+
+  "sessionExpired": "Sesija je istekla. Prijavite se ponovo da biste nastavili.",
+  "authError": "Greška pri autentifikaciji Google naloga.",
+  "pickerApiKeyNotConfigured": "Google Picker API ključ nije konfigurisan.",
+  "pickerLoadError": "Nije moguće učitati Google Picker. Pokušajte ponovo.",
+  "syncFailed": "Neuspešna sinhronizacija sa Google Sheets.",
+  "autoConnectFailed": "Automatsko povezivanje Google Sheets naloga nije uspelo.",
+  "connectFailed": "Neuspešno povezivanje sa Google Sheets.",
+
+  "sheetCreatedSuccess": "Kreiran je novi Google Sheet ({spreadsheetId}).",
+  "@sheetCreatedSuccess": {
+    "placeholders": {
+      "spreadsheetId": {
+        "type": "String"
+      }
+    }
+  },
+  "sheetConnectedSuccess": "Google Sheets sinhronizacija aktivirana ({spreadsheetId}).",
+  "@sheetConnectedSuccess": {
+    "placeholders": {
+      "spreadsheetId": {
+        "type": "String"
+      }
+    }
+  },
+  "spreadsheetInfo": "Spreadsheet ID: ",
+  "selected": "Odabrano: {name}",
+  "@selected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+
+  "overviewGreeting": "Zdravo, paušalac!",
+  "overviewSubtitle": "Praćenje prihoda, troškova i limita paušalnog oporezivanja.",
+  "total": "Ukupno",
+  "issuedInvoices": "Izdati računi",
+  "expenses": "Troškovi",
+  "taxObligations": "Obaveze paušala",
+  "estimatedNet": "Procenjeni neto",
+  "revenueShareByClientYear": "Udeo prihoda po klijentima u {year}. godini",
+  "@revenueShareByClientYear": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  },
+  "noConnectedClients": "Još uvek nema povezanih klijenata.",
+  "clientLimitWarning": "Pazite da pojedinačan klijent ne premaši 60% ukupnih prihoda.",
+  "rollingLimit": "Limit u poslednjih 12 meseci",
+  "remainingToLimit": "Preostalo do limita",
+  "rollingLimitCap": "Ograničenje 12m",
+  "periodCovered": "Obuhvaćen period: {start} - {end}",
+  "@periodCovered": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "annualLimit": "Godišnji limit",
+  "totalLimit": "Ukupan limit",
+  "monthlyObligations": "Mesečne obaveze",
+  "pensionContribution": "PIO doprinos",
+  "healthInsurance": "Zdravstveno osiguranje",
+  "taxPrepayment": "Akontacija poreza",
+  "totalMonthly": "Ukupno mesečno",
+  "recentActivity": "Poslednje aktivnosti",
+  "noEntriesYet": "Još uvek nema zabeleženih stavki.",
+  "unknownClient": "Nepoznat klijent",
+
+  "filters": "Filteri",
+  "clearFilters": "Obriši filtere",
+  "year": "Godina",
+  "allYears": "Sve godine",
+  "month": "Mesec",
+  "allMonths": "Svi meseci",
+  "client": "Klijent",
+  "allClients": "Svi klijenti",
+  "invoices": "Izdati računi",
+  "noDataYet": "Još uvek nema podataka. Dodajte novu stavku.",
+
+  "clients": "Klijenti",
+  "newClient": "Novi klijent",
+  "clientLimitNote": "Vodite računa da nijedan klijent ne premaši 60% ukupnih prihoda.",
+  "noClientsYet": "Još uvek nema klijenata.",
+  "addFirstClient": "Dodaj prvog klijenta",
+  "pibLabel": "PIB: ",
+  "pibNotAvailable": "N/A",
+  "clientStats": "Udeo: {percent}% · Računi: {invoiceCount} · {amount}",
+  "@clientStats": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      },
+      "invoiceCount": {
+        "type": "int"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+
+  "profileHeading": "Paušal profil",
+  "profileHelperText": "Ažurirajte podatke o firmi i paušalu. Podaci o firmi se pojavljuju na generisanim fakturama.",
+  "companyData": "Podaci o firmi",
+  "companyName": "Naziv firme",
+  "companyShortName": "Skraćeni naziv (opciono)",
+  "responsiblePerson": "Odgovorno lice",
+  "pib": "PIB",
+  "address": "Adresa",
+  "accountNumber": "Broj računa",
+  "taxData": "Poreski podaci paušala",
+  "city": "Grad",
+  "monthlyPension": "PIO doprinos (mesečno)",
+  "monthlyHealth": "Zdravstveno osiguranje (mesečno)",
+  "monthlyTaxPrepayment": "Akontacija poreza (mesečno)",
+  "annualLimitLabel": "Godišnji limit prihoda",
+  "rollingLimitLabel": "Limit u poslednjih 12 meseci",
+  "additionalTaxRate": "Dodatni porez (u %)",
+  "dataSaved": "Podaci sačuvani",
+
+  "editEntry": "Izmena stavke",
+  "newEntry": "Nova stavka",
+  "income": "Prihod",
+  "expense": "Trošak",
+  "invoiceNumber": "Broj fakture",
+  "invoiceNumberHint": "npr. 10-2025",
+  "enterInvoiceNumber": "Unesite broj fakture",
+  "invoiceDescription": "Opis fakture",
+  "expenseName": "Naziv troška",
+  "enterName": "Unesite naziv",
+  "invoiceItems": "Stavke fakture",
+  "addItem": "Dodaj stavku",
+  "totalFormatted": "Ukupno: {amount}",
+  "@totalFormatted": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "selectClientForInvoice": "Odaberite klijenta za fakturu",
+  "addAtLeastOneItem": "Dodajte bar jednu stavku sa cenom i količinom.",
+  "enterInvoiceNumberError": "Unesite broj fakture.",
+  "totalAmount": "Ukupan iznos",
+  "autoCalculated": "Automatski se računa na osnovu stavki",
+  "enterAmountGreaterThanZero": "Unesite iznos veći od nule",
+  "date": "Datum",
+  "selectDate": "Izaberi datum",
+  "noteOptional": "Napomena (opciono)",
+  "searchClients": "Pretraga klijenata",
+  "noClientsForCriteria": "Nema klijenata za zadati kriterijum.",
+
+  "invoiceItem": "Stavka {index}",
+  "@invoiceItem": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "removeItem": "Ukloni stavku",
+  "itemDescription": "Opis stavke",
+  "enterItemDescription": "Unesite opis stavke",
+  "unitOfMeasure": "Jedinica mere",
+  "workHour": "Radni sat",
+  "piece": "Komad",
+  "quantity": "Količina",
+  "enterQuantity": "Unesite količinu",
+  "pricePerUnit": "Cena po jedinici",
+  "enterPrice": "Unesite cenu",
+  "itemAmount": "Iznos stavke: {total}",
+  "@itemAmount": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+
+  "editClient": "Izmena klijenta",
+  "clientName": "Naziv klijenta",
+  "enterClientName": "Unesite naziv klijenta",
+
+  "actions": "Radnje",
+  "print": "Štampa",
+  "pdfSend": "PDF / Pošalji",
+  "addClientBeforePrint": "Dodajte klijenta pre štampe fakture.",
+  "addClientBeforeSend": "Dodajte klijenta pre slanja fakture.",
+  "invoiceDetail": "Faktura {number}",
+  "@invoiceDetail": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "invoiceShareText": "Faktura {invoiceNumber} za {clientName} iznosi {amount}.\nUplata na račun: {accountNumber}.",
+  "@invoiceShareText": {
+    "placeholders": {
+      "invoiceNumber": {
+        "type": "String"
+      },
+      "clientName": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "accountNumber": {
+        "type": "String"
+      }
+    }
+  },
+
+  "fabNewEntry": "Nova stavka",
+  "fabNewClient": "Novi klijent",
+
+  "enterValue": "Unesite naziv",
+  "enterNumberGreaterOrEqualZero": "Unesite broj veći ili jednak nuli",
+
+  "sheetInfo": "Sheetovi: {expensesSheet} (troškovi), {clientsSheet} (klijenti), {profileSheet} (profil)",
+  "@sheetInfo": {
+    "placeholders": {
+      "expensesSheet": {
+        "type": "String"
+      },
+      "clientsSheet": {
+        "type": "String"
+      },
+      "profileSheet": {
+        "type": "String"
+      }
+    }
+  },
+  "connectedAsEmail": "Povezano kao {email}",
+  "@connectedAsEmail": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  }
+}

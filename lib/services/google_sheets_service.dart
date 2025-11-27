@@ -72,7 +72,7 @@ class GoogleSheetsService {
     for (var i = 0; i < sheetsToEnsure.length; i++) {
       final sheetName = sheetsToEnsure[i].$1;
       final headers = sheetsToEnsure[i].$2;
-      onSheet?.call(sheetName, (i + 1) / sheetsToEnsure.length);
+      onSheet?.call(sheetName, (i + 1) / sheetsToEnsure.length * 0.15);
       await _ensureSheet(sheetName, headers);
     }
   }

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../widgets/landing_bullet.dart';
+import '../l10n/app_localizations.dart';
 
 class LandingPage extends StatelessWidget {
-  const LandingPage({super.key});
+  final void Function(Locale)? onLanguageChange;
+
+  const LandingPage({super.key, this.onLanguageChange});
 
   void _openPrivacyPolicy(BuildContext context) {
     if (!context.mounted) {
@@ -17,18 +20,35 @@ class LandingPage extends StatelessWidget {
     final theme = Theme.of(context);
     final mediaQuery = MediaQuery.of(context);
     final isWide = mediaQuery.size.width >= 900;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(''),
         actions: [
+          // Language selector
+          PopupMenuButton<Locale>(
+            tooltip: 'Language / Jezik',
+            icon: const Icon(Icons.language),
+            onSelected: (locale) => onLanguageChange?.call(locale),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: Locale('sr', ''),
+                child: Text('🇷🇸 Srpski'),
+              ),
+              const PopupMenuItem(
+                value: Locale('en', ''),
+                child: Text('🇬🇧 English'),
+              ),
+            ],
+          ),
           TextButton(
             onPressed: () => _openPrivacyPolicy(context),
             style: TextButton.styleFrom(
               foregroundColor: theme.colorScheme.primary,
               textStyle: theme.textTheme.labelLarge,
             ),
-            child: const Text('Privacy Policy'),
+            child: Text(l10n.privacyPolicy),
           ),
           const SizedBox(width: 8),
         ],
@@ -45,14 +65,14 @@ class LandingPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Paušal kalkulator',
+                  l10n.landingTitle,
                   style: theme.textTheme.displaySmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Digitalni asistent za paušalno oporezovane preduzetnike koji razvija Finna Cons.',
+                  l10n.landingSubtitle,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -67,11 +87,11 @@ class LandingPage extends StatelessWidget {
                         Navigator.of(context).pushReplacementNamed('/app');
                       },
                       icon: const Icon(Icons.play_arrow),
-                      label: const Text('Pokreni aplikaciju'),
+                      label: Text(l10n.launchApp),
                     ),
                     OutlinedButton(
                       onPressed: () => _openPrivacyPolicy(context),
-                      child: const Text('Privacy Policy'),
+                      child: Text(l10n.privacyPolicy),
                     ),
                   ],
                 ),
@@ -81,32 +101,29 @@ class LandingPage extends StatelessWidget {
                     padding: const EdgeInsets.all(24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'Šta aplikacija radi',
-                          style: TextStyle(
+                          l10n.whatAppDoes,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         LandingBullet(
                           icon: Icons.dashboard_customize,
-                          title: 'Pregled poslovanja',
-                          description:
-                              'Automatski izračunava promet, troškove, neto prihod i poreske obaveze po osnovu paušalnog oporezivanja.',
+                          title: l10n.featureOverviewTitle,
+                          description: l10n.featureOverviewDesc,
                         ),
                         LandingBullet(
                           icon: Icons.people_outline,
-                          title: 'Upravljanje klijentima',
-                          description:
-                              'Pratite prihod po klijentu, evidentirajte ugovore i vodite računa o propisanim limitima.',
+                          title: l10n.featureClientsTitle,
+                          description: l10n.featureClientsDesc,
                         ),
                         LandingBullet(
                           icon: Icons.receipt_long_outlined,
-                          title: 'Fakturisanje',
-                          description:
-                              'Kreirajte PDF fakture u skladu sa lokalnim propisima i delite ih direktno iz aplikacije.',
+                          title: l10n.featureInvoicingTitle,
+                          description: l10n.featureInvoicingDesc,
                         ),
                       ],
                     ),
@@ -118,32 +135,29 @@ class LandingPage extends StatelessWidget {
                     padding: const EdgeInsets.all(24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'Šta je novo',
-                          style: TextStyle(
+                          l10n.whatsNew,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         LandingBullet(
                           icon: Icons.cloud_done_outlined,
-                          title: 'Google Sheets sinhronizacija',
-                          description:
-                              'Podaci se povezuju direktno sa vašim Google Sheets dokumentom – aplikacija čita i ažurira isti fajl bez manualnog export/import procesa.',
+                          title: l10n.featureSyncTitle,
+                          description: l10n.featureSyncDesc,
                         ),
                         LandingBullet(
                           icon: Icons.check_circle_outline,
-                          title: 'Jednostavan onboarding',
-                          description:
-                              'Povežite postojeći sheet ili kreirajte novi dokument sa svim potrebnim listovima: troškovi, klijenti i profil firme.',
+                          title: l10n.featureOnboardingTitle,
+                          description: l10n.featureOnboardingDesc,
                         ),
                         LandingBullet(
                           icon: Icons.security_outlined,
-                          title: 'Potpuna kontrola podataka',
-                          description:
-                              'Podaci ostaju u vašem Google nalogu. Aplikacija koristi samo one dozvole koje ste eksplicitno odobrili.',
+                          title: l10n.featureDataControlTitle,
+                          description: l10n.featureDataControlDesc,
                         ),
                       ],
                     ),
@@ -155,32 +169,29 @@ class LandingPage extends StatelessWidget {
                     padding: const EdgeInsets.all(24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'Važni linkovi',
-                          style: TextStyle(
+                          l10n.importantLinks,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        SizedBox(height: 12),
+                        const SizedBox(height: 12),
                         LandingBullet(
                           icon: Icons.privacy_tip_outlined,
-                          title: 'Politika privatnosti',
-                          description:
-                              'Detaljno objašnjava koje Google naloge i Sheets dozvole koristimo i zašto.',
+                          title: l10n.linkPrivacyTitle,
+                          description: l10n.linkPrivacyDesc,
                         ),
                         LandingBullet(
                           icon: Icons.mail_outline,
-                          title: 'Kontakt podrška',
-                          description:
-                              'Pišite na office@finaccons.rs za pomoć u podešavanju ili prijavu grešaka.',
+                          title: l10n.linkSupportTitle,
+                          description: l10n.linkSupportDesc,
                         ),
                         LandingBullet(
                           icon: Icons.new_releases_outlined,
-                          title: 'Plan razvoja',
-                          description:
-                              'Dodavanje analitike po klijentu, eksport u XML/JPKD format i još mnogo toga.',
+                          title: l10n.linkRoadmapTitle,
+                          description: l10n.linkRoadmapDesc,
                         ),
                       ],
                     ),
