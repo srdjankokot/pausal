@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pausal_calculator/screens/app/client.dart';
 import 'package:pausal_calculator/screens/app/client_share.dart';
 import 'package:pausal_calculator/screens/app/lendger_entry.dart';
@@ -25,6 +26,13 @@ class OverviewTab extends StatefulWidget {
 
 class _OverviewTabState extends State<OverviewTab> {
   String _selectedPeriod = 'Do 6M';
+  late int _selectedRevenueYear;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedRevenueYear = DateTime.now().year;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,9 +77,14 @@ class _OverviewTabState extends State<OverviewTab> {
         ? 0.0
         : (totalInvoicedCurrentYear / widget.profile.annualLimit).clamp(0.0, 1.0);
 
+    // Calculate client shares for selected year
+    final totalInvoicedSelectedYear = invoices
+        .where((invoice) => invoice.date.year == _selectedRevenueYear)
+        .fold<double>(0, (sum, entry) => sum + entry.amount);
+
     final Map<String, double> clientTotals = {};
     for (final invoice in invoices.where(
-      (invoice) => invoice.date.year == currentYear,
+      (invoice) => invoice.date.year == _selectedRevenueYear,
     )) {
       final clientId = invoice.clientId;
       if (clientId == null) continue;
@@ -82,9 +95,9 @@ class _OverviewTabState extends State<OverviewTab> {
         ifAbsent: () => invoice.amount,
       );
     }
-    final totalForShare = totalInvoicedCurrentYear == 0
+    final totalForShare = totalInvoicedSelectedYear == 0
         ? 1
-        : totalInvoicedCurrentYear;
+        : totalInvoicedSelectedYear;
     final clientShares = <ClientShare>[];
     for (final entry in clientTotals.entries) {
       final client = widget.clients.firstWhere(
@@ -135,8 +148,8 @@ class _OverviewTabState extends State<OverviewTab> {
                     context,
                     l10n.issuedInvoices,
                     totalInvoiced,
-                    Icons.description,
-                    Colors.green[100]!,
+                    'assets/images/receipt.svg',
+                    Colors.green,
 
                     (constraints.maxWidth - (spacing * (cardCount - 1))) / cardCount,
                   ),
@@ -144,8 +157,8 @@ class _OverviewTabState extends State<OverviewTab> {
                     context,
                     l10n.expenses,
                     totalExpenses,
-                    Icons.shopping_cart,
-                    Colors.orange[100]!,
+                    'assets/images/money_send.svg',
+                    Colors.red,
 
                     (constraints.maxWidth - (spacing * (cardCount - 1))) / cardCount,
                   ),
@@ -153,8 +166,8 @@ class _OverviewTabState extends State<OverviewTab> {
                     context,
                     l10n.taxObligations,
                     totalObligations,
-                    Icons.receipt_long,
-                    Colors.red[100]!,
+                    'assets/images/wallet_check.svg',
+                    Colors.red,
 
                     (constraints.maxWidth - (spacing * (cardCount - 1))) / cardCount,
                   ),
@@ -162,8 +175,8 @@ class _OverviewTabState extends State<OverviewTab> {
                     context,
                     l10n.estimatedNet,
                     netIncome,
-                    Icons.account_balance_wallet,
-                    Colors.purple[100]!,
+                    'assets/images/wallet.svg',
+                    Colors.green,
 
                     (constraints.maxWidth - (spacing * (cardCount - 1))) / cardCount,
                   ),
@@ -190,7 +203,7 @@ class _OverviewTabState extends State<OverviewTab> {
                     Expanded(
                       child: Column(
                         children: [
-                          _buildRevenueByClientCard(context, clientShares, currentYear, l10n),
+                          _buildRevenueByClientCard(context, clientShares, _selectedRevenueYear, l10n),
                           const SizedBox(height: 20),
                           _buildLastActivitiesCard(context, l10n),
                         ],
@@ -213,7 +226,7 @@ class _OverviewTabState extends State<OverviewTab> {
                 // Single column layout for narrow screens
                 return Column(
                   children: [
-                    _buildRevenueByClientCard(context, clientShares, currentYear, l10n),
+                    _buildRevenueByClientCard(context, clientShares, _selectedRevenueYear, l10n),
                     const SizedBox(height: 20),
                     _buildAnnualLimitCard(context, remainingLimit as double, totalInvoicedCurrentYear, limitProgress, l10n),
                     const SizedBox(height: 20),
@@ -232,7 +245,7 @@ class _OverviewTabState extends State<OverviewTab> {
     BuildContext context,
     String label,
     double value,
-    IconData icon,
+    String iconPath,
     Color iconColor,
     double width,
   ) {
@@ -247,10 +260,10 @@ class _OverviewTabState extends State<OverviewTab> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
+             color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+            )
           ],
         ),
         child: Column(
@@ -272,13 +285,21 @@ class _OverviewTabState extends State<OverviewTab> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.1),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Colors.grey[300]!,
+                      width: 1.0,
+                    ),
                   ),
-                  child: Icon(
-                    icon,
-                    color: iconColor,
-                    size: 20,
+                  child: SvgPicture.asset(
+                    iconPath,
+                    width: 24,
+                    height: 24,
+                    colorFilter: ColorFilter.mode(
+                      iconColor,
+                      BlendMode.srcIn,
+                    ),
                   ),
                 ),
               ],
@@ -302,10 +323,23 @@ class _OverviewTabState extends State<OverviewTab> {
   Widget _buildRevenueByClientCard(
     BuildContext context,
     List<ClientShare> clientShares,
-    int currentYear,
+    int selectedYear,
     AppLocalizations l10n,
   ) {
     final isMobile = MediaQuery.of(context).size.width <= 900;
+
+    // Get available years from entries
+    final availableYears = widget.entries
+        .map((entry) => entry.date.year)
+        .toSet()
+        .toList()
+      ..sort((a, b) => b.compareTo(a)); // Sort descending (newest first)
+
+    // Calculate total income for selected year
+    final totalIncomeForYear = clientShares.fold<double>(
+      0,
+      (sum, share) => sum + share.amount,
+    );
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -323,12 +357,59 @@ class _OverviewTabState extends State<OverviewTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.revenueShareByClientYear(currentYear.toString()),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.revenueShareByClientYear(selectedYear.toString()),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              if (availableYears.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButton<int>(
+                    value: selectedYear,
+                    underline: const SizedBox(),
+                    isDense: true,
+                    icon: const Icon(Icons.arrow_drop_down, size: 20),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                    items: availableYears.map((year) {
+                      return DropdownMenuItem<int>(
+                        value: year,
+                        child: Text(year.toString()),
+                      );
+                    }).toList(),
+                    onChanged: (int? newYear) {
+                      if (newYear != null) {
+                        setState(() {
+                          _selectedRevenueYear = newYear;
+                        });
+                      }
+                    },
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          buildCurrencyText(
+            context,
+            totalIncomeForYear,
+            numberFontSize: isMobile ? 20 : 24,
+            currencyFontSize: isMobile ? 10 : 12,
+            numberWeight: FontWeight.bold,
+            numberColor: Colors.black87,
           ),
           const SizedBox(height: 20),
           if (clientShares.isEmpty)

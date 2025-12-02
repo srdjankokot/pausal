@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:pausal_calculator/screens/app/add_client.dart';
 import 'package:pausal_calculator/screens/app/add_entry_sheet.dart';
 import 'package:pausal_calculator/screens/app/client.dart';
@@ -1165,7 +1166,7 @@ class _PausalHomeState extends State<PausalHome> {
                         ),
                         child: Row(
                           children: [
-                            
+
                             Container(
                               width: 32,
                               height: 32,
@@ -1182,8 +1183,8 @@ class _PausalHomeState extends State<PausalHome> {
                                 ),
                               ),
                             ),
-                            if (!_isSidebarCollapsed) const SizedBox(width: 12),
-                            if (!_isSidebarCollapsed)
+                            if (!_isSidebarCollapsed) ...[
+                              const SizedBox(width: 12),
                               const Text(
                                 'Pausal',
                                 style: TextStyle(
@@ -1192,7 +1193,9 @@ class _PausalHomeState extends State<PausalHome> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            const Spacer(),
+                              const Spacer(),
+                            ],
+                            if (_isSidebarCollapsed) const Spacer(),
                             IconButton(
                               tooltip: _isSidebarCollapsed ? 'Proširi meni' : 'Sakrij meni',
                               onPressed: () {
@@ -1203,12 +1206,17 @@ class _PausalHomeState extends State<PausalHome> {
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                               visualDensity: VisualDensity.compact,
-                              icon: Icon(
-                                _isSidebarCollapsed
-                                    ? Icons.chevron_right
-                                    : Icons.chevron_left,
-                                color: Colors.grey[300],
-                                size: 20,
+                              icon: Transform.rotate(
+                                angle: _isSidebarCollapsed ? 3.14159 : 0,
+                                child: SvgPicture.asset(
+                                  'assets/images/menu_back.svg',
+                                  width: 20,
+                                  height: 20,
+                                  colorFilter: ColorFilter.mode(
+                                    Colors.grey[300]!,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -1220,28 +1228,28 @@ class _PausalHomeState extends State<PausalHome> {
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           children: [
                             _buildNavItem(
-                              icon: Icons.dashboard_outlined,
+                              iconPath: 'assets/images/home.svg',
                               label: l10n.navOverview,
                               isSelected: _currentIndex == 0,
                               isCollapsed: _isSidebarCollapsed,
                               onTap: () => setState(() => _currentIndex = 0),
                             ),
                             _buildNavItem(
-                              icon: Icons.receipt_long_outlined,
+                              iconPath: 'assets/images/receipt.svg',
                               label: l10n.navLedger,
                               isSelected: _currentIndex == 1,
                               isCollapsed: _isSidebarCollapsed,
                               onTap: () => setState(() => _currentIndex = 1),
                             ),
                             _buildNavItem(
-                              icon: Icons.people_alt_outlined,
+                              iconPath: 'assets/images/profile_user.svg',
                               label: l10n.navClients,
                               isSelected: _currentIndex == 2,
                               isCollapsed: _isSidebarCollapsed,
                               onTap: () => setState(() => _currentIndex = 2),
                             ),
                             _buildNavItem(
-                              icon: Icons.settings_outlined,
+                              iconPath: 'assets/images/setting.svg',
                               label: l10n.navProfile,
                               isSelected: _currentIndex == 3,
                               isCollapsed: _isSidebarCollapsed,
@@ -1370,23 +1378,87 @@ class _PausalHomeState extends State<PausalHome> {
               },
               destinations: [
                 NavigationDestination(
-                  icon: const Icon(Icons.dashboard_outlined),
-                  selectedIcon: const Icon(Icons.dashboard),
+                  icon: SvgPicture.asset(
+                    'assets/images/home.svg',
+                    width: 24,
+                    height: 24,
+                    colorFilter: ColorFilter.mode(
+                      Colors.grey[600]!,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  selectedIcon: SvgPicture.asset(
+                    'assets/images/home.svg',
+                    width: 24,
+                    height: 24,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.blue,
+                      BlendMode.srcIn,
+                    ),
+                  ),
                   label: l10n.navOverview,
                 ),
                 NavigationDestination(
-                  icon: const Icon(Icons.receipt_long_outlined),
-                  selectedIcon: const Icon(Icons.receipt_long),
+                  icon: SvgPicture.asset(
+                    'assets/images/receipt.svg',
+                    width: 24,
+                    height: 24,
+                    colorFilter: ColorFilter.mode(
+                      Colors.grey[600]!,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  selectedIcon: SvgPicture.asset(
+                    'assets/images/receipt.svg',
+                    width: 24,
+                    height: 24,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.blue,
+                      BlendMode.srcIn,
+                    ),
+                  ),
                   label: l10n.navLedger,
                 ),
                 NavigationDestination(
-                  icon: const Icon(Icons.people_alt_outlined),
-                  selectedIcon: const Icon(Icons.people),
+                  icon: SvgPicture.asset(
+                    'assets/images/profile_user.svg',
+                    width: 24,
+                    height: 24,
+                    colorFilter: ColorFilter.mode(
+                      Colors.grey[600]!,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  selectedIcon: SvgPicture.asset(
+                    'assets/images/profile_user.svg',
+                    width: 24,
+                    height: 24,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.blue,
+                      BlendMode.srcIn,
+                    ),
+                  ),
                   label: l10n.navClients,
                 ),
                 NavigationDestination(
-                  icon: const Icon(Icons.settings_outlined),
-                  selectedIcon: const Icon(Icons.settings),
+                  icon: SvgPicture.asset(
+                    'assets/images/setting.svg',
+                    width: 24,
+                    height: 24,
+                    colorFilter: ColorFilter.mode(
+                      Colors.grey[600]!,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  selectedIcon: SvgPicture.asset(
+                    'assets/images/setting.svg',
+                    width: 24,
+                    height: 24,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.blue,
+                      BlendMode.srcIn,
+                    ),
+                  ),
                   label: l10n.navProfile,
                 ),
               ],
@@ -1557,7 +1629,7 @@ class _PausalHomeState extends State<PausalHome> {
   }
 
   Widget _buildNavItem({
-    required IconData icon,
+    required String iconPath,
     required String label,
     required bool isSelected,
     required bool isCollapsed,
@@ -1585,13 +1657,17 @@ class _PausalHomeState extends State<PausalHome> {
               mainAxisAlignment:
                   isCollapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
               children: [
-                Icon(
-                  icon,
-                  color: isSelected ? Colors.white : Colors.grey[400],
-                  size: 20,
+                SvgPicture.asset(
+                  iconPath,
+                  width: 20,
+                  height: 20,
+                  colorFilter: ColorFilter.mode(
+                    isSelected ? Colors.white : Colors.grey[400]!,
+                    BlendMode.srcIn,
+                  ),
                 ),
-                if (!isCollapsed) const SizedBox(width: 12),
-                if (!isCollapsed)
+                if (!isCollapsed) ...[
+                  const SizedBox(width: 12),
                   Text(
                     label,
                     style: TextStyle(
@@ -1600,6 +1676,7 @@ class _PausalHomeState extends State<PausalHome> {
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
+                ],
               ],
             ),
           ),

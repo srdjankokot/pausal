@@ -50,6 +50,7 @@ dependencies:
   firebase_core: ^4.2.0
   firebase_analytics: ^12.0.3
   google_sign_in_web: ^0.12.0+2
+  flutter_svg: ^2.0.10+1
 
 dev_dependencies:
   flutter_test:
@@ -78,6 +79,21 @@ flutter:
     - assets/fonts/Roboto-Regular.ttf
     - assets/fonts/Roboto-Bold.ttf
     - assets/images/pausal_logo.png
+    - assets/images/arrow_down.svg
+    - assets/images/book.svg
+    - assets/images/calendar.svg
+    - assets/images/calendar_time.svg
+    - assets/images/close_icon.svg
+    - assets/images/home.svg
+    - assets/images/logout.svg
+    - assets/images/menu_back.svg
+    - assets/images/messages.svg
+    - assets/images/money_send.svg
+    - assets/images/profile_user.svg
+    - assets/images/receipt.svg
+    - assets/images/setting.svg
+    - assets/images/wallet.svg
+    - assets/images/wallet_check.svg
 
   # To add assets to your application, add an assets section, like this:
   # assets:
