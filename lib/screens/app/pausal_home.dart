@@ -748,22 +748,33 @@ class _PausalHomeState extends State<PausalHome> {
   }
 
   Future<void> _disconnectGoogleSheets() async {
-    // _sheetsService?.close();
-    await _authService.signOut();
-    await SyncMetadataStorage.clear();
-    setState(() {
-      _googleUser = null;
-      _googleUserEmail = null;
+    try {
+      final sheetsService = _sheetsService;
       _sheetsService = null;
-      _isConnecting = false;
-      _isSyncing = false;
-      _spreadsheetId = null;
-      _expensesSheetName = 'Expenses';
-      _clientsSheetName = 'Clients';
-      _profileSheetName = 'Profile';
-      _entries = [];
-      _clients = [];
-    });
+      sheetsService?.close();
+      await _authService.signOut();
+      await SyncMetadataStorage.clear();
+    } catch (error, stack) {
+      debugPrint('Error during sign out: $error');
+      debugPrint('$stack');
+    } finally {
+      // Always update state to ensure UI reflects logged-out state
+      if (mounted) {
+        setState(() {
+          _googleUser = null;
+          _googleUserEmail = null;
+          _sheetsService = null;
+          _isConnecting = false;
+          _isSyncing = false;
+          _spreadsheetId = null;
+          _expensesSheetName = 'Expenses';
+          _clientsSheetName = 'Clients';
+          _profileSheetName = 'Profile';
+          _entries = [];
+          _clients = [];
+        });
+      }
+    }
   }
 
   Future<SpreadsheetConfig?> _promptForSpreadsheetConfig() async {
@@ -1083,14 +1094,17 @@ class _PausalHomeState extends State<PausalHome> {
             ConnectSheetPlaceholder(
               isConnecting: _isConnecting,
               onConnect: _connectGoogleSheets,
+              onOpenApp: () => Navigator.pushNamed(context, '/about'),
             ),
             ConnectSheetPlaceholder(
               isConnecting: _isConnecting,
               onConnect: _connectGoogleSheets,
+              onOpenApp: () => Navigator.pushNamed(context, '/about'),
             ),
             ConnectSheetPlaceholder(
               isConnecting: _isConnecting,
               onConnect: _connectGoogleSheets,
+              onOpenApp: () => Navigator.pushNamed(context, '/about'),
             ),
             SettingsTab(
               taxProfile: _profile,
@@ -1258,100 +1272,109 @@ class _PausalHomeState extends State<PausalHome> {
                           ],
                         ),
                       ),
-                      // if (!_isSidebarCollapsed)
-                      //   Padding(
-                      //     padding: const EdgeInsets.symmetric(horizontal: 20),
-                      //     child: Column(
-                      //       children: [
-                      //         // Language selector
-                      //         PopupMenuButton<Locale>(
-                      //           tooltip: 'Language / Jezik',
-                      //           onSelected: (locale) => widget.onLanguageChange?.call(locale),
-                      //           offset: const Offset(0, -100),
-                      //           itemBuilder: (context) => [
-                      //             const PopupMenuItem(
-                      //               value: Locale('sr', ''),
-                      //               child: Row(
-                      //                 children: [
-                      //                   Text('🇷🇸'),
-                      //                   SizedBox(width: 8),
-                      //                   Text('Srpski'),
-                      //                 ],
-                      //               ),
-                      //             ),
-                      //             const PopupMenuItem(
-                      //               value: Locale('en', ''),
-                      //               child: Row(
-                      //                 children: [
-                      //                   Text('🇬🇧'),
-                      //                   SizedBox(width: 8),
-                      //                   Text('English'),
-                      //                 ],
-                      //               ),
-                      //             ),
-                      //           ],
-                      //           child: Container(
-                      //             padding: const EdgeInsets.all(12),
-                      //             decoration: BoxDecoration(
-                      //               color: Colors.white.withValues(alpha: 0.05),
-                      //               borderRadius: BorderRadius.circular(8),
-                      //             ),
-                      //             child: Row(
-                      //               children: [
-                      //                 Icon(
-                      //                   Icons.language,
-                      //                   color: Colors.grey[400],
-                      //                   size: 20,
-                      //                 ),
-                      //                 const SizedBox(width: 12),
-                      //                 Text(
-                      //                   Localizations.localeOf(context).languageCode == 'sr'
-                      //                       ? '🇷🇸 Srpski'
-                      //                       : '🇬🇧 English',
-                      //                   style: TextStyle(
-                      //                     color: Colors.grey[300],
-                      //                     fontSize: 14,
-                      //                   ),
-                      //                 ),
-                      //                 const Spacer(),
-                      //                 Icon(
-                      //                   Icons.keyboard_arrow_up,
-                      //                   color: Colors.grey[500],
-                      //                   size: 16,
-                      //                 ),
-                      //               ],
-                      //             ),
-                      //           ),
-                      //         ),
-                      //         const SizedBox(height: 12),
-                      //         Container(
-                      //           padding: const EdgeInsets.all(12),
-                      //           decoration: BoxDecoration(
-                      //             color: Colors.white.withValues(alpha: 0.05),
-                      //             borderRadius: BorderRadius.circular(8),
-                      //           ),
-                      //           child: Row(
-                      //             children: [
-                      //               Icon(
-                      //                 Icons.help_outline,
-                      //                 color: Colors.grey[400],
-                      //                 size: 20,
-                      //               ),
-                      //               const SizedBox(width: 12),
-                      //               Text(
-                      //                 'Pomoc i Podrška',
-                      //                 style: TextStyle(
-                      //                   color: Colors.grey[300],
-                      //                   fontSize: 14,
-                      //                 ),
-                      //               ),
-                      //             ],
-                      //           ),
-                      //         ),
-                      //       ],
-                      //     ),
-                      //   ),
-                      // if (!_isSidebarCollapsed) const SizedBox(height: 20),
+                      if (!_isSidebarCollapsed)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            children: [
+                              // Language selector
+                              // PopupMenuButton<Locale>(
+                              //   tooltip: 'Language / Jezik',
+                              //   onSelected: (locale) => widget.onLanguageChange?.call(locale),
+                              //   offset: const Offset(0, -100),
+                              //   itemBuilder: (context) => [
+                              //     const PopupMenuItem(
+                              //       value: Locale('sr', ''),
+                              //       child: Row(
+                              //         children: [
+                              //           Text('🇷🇸'),
+                              //           SizedBox(width: 8),
+                              //           Text('Srpski'),
+                              //         ],
+                              //       ),
+                              //     ),
+                              //     const PopupMenuItem(
+                              //       value: Locale('en', ''),
+                              //       child: Row(
+                              //         children: [
+                              //           Text('🇬🇧'),
+                              //           SizedBox(width: 8),
+                              //           Text('English'),
+                              //         ],
+                              //       ),
+                              //     ),
+                              //   ],
+                              //   child: Container(
+                              //     padding: const EdgeInsets.all(12),
+                              //     decoration: BoxDecoration(
+                              //       color: Colors.white.withValues(alpha: 0.05),
+                              //       borderRadius: BorderRadius.circular(8),
+                              //     ),
+                              //     child: Row(
+                              //       children: [
+                              //         Icon(
+                              //           Icons.language,
+                              //           color: Colors.grey[400],
+                              //           size: 20,
+                              //         ),
+                              //         const SizedBox(width: 12),
+                              //         Text(
+                              //           Localizations.localeOf(context).languageCode == 'sr'
+                              //               ? '🇷🇸 Srpski'
+                              //               : '🇬🇧 English',
+                              //           style: TextStyle(
+                              //             color: Colors.grey[300],
+                              //             fontSize: 14,
+                              //           ),
+                              //         ),
+                              //         const Spacer(),
+                              //         Icon(
+                              //           Icons.keyboard_arrow_up,
+                              //           color: Colors.grey[500],
+                              //           size: 16,
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   ),
+                              // ),
+                              // const SizedBox(height: 12),
+                              // Container(
+                              //   padding: const EdgeInsets.all(12),
+                              //   decoration: BoxDecoration(
+                              //     color: Colors.white.withValues(alpha: 0.05),
+                              //     borderRadius: BorderRadius.circular(8),
+                              //   ),
+                              //   child: Row(
+                              //     children: [
+                              //       Icon(
+                              //         Icons.help_outline,
+                              //         color: Colors.grey[400],
+                              //         size: 20,
+                              //       ),
+                              //       const SizedBox(width: 12),
+                              //       Text(
+                              //         'Pomoc i Podrška',
+                              //         style: TextStyle(
+                              //           color: Colors.grey[300],
+                              //           fontSize: 14,
+                              //         ),
+                              //       ),
+                              //     ],
+                              //   ),
+                              // ),
+                            
+                               _buildNavItem(
+                              iconPath: 'assets/images/logout.svg',
+                              label: l10n.navLogOut,
+                              isSelected: _currentIndex == 4,
+                              isCollapsed: _isSidebarCollapsed,
+                              onTap: _disconnectGoogleSheets,
+                            )
+                            
+                            ],
+                          ),
+                        ),
+                      if (!_isSidebarCollapsed) const SizedBox(height: 20),
                     ],
                   ),
                 ),
@@ -1471,7 +1494,21 @@ class _PausalHomeState extends State<PausalHome> {
 
     return Stack(
       children: [
+        if(_isConnected)
         scaffold,
+        if(!_isConnected)
+          Positioned.fill(
+            child: 
+            Container(
+                color: Colors.white,
+                alignment: Alignment.center,
+                child:
+            ConnectSheetPlaceholder(
+              isConnecting: _isConnecting,
+              onConnect: _connectGoogleSheets,
+              onOpenApp: () => Navigator.pushNamed(context, '/about'),
+            )))
+          ,
         if (_isCheckingStructure)
           Positioned.fill(
             child: AbsorbPointer(

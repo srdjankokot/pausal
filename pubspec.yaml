@@ -79,6 +79,7 @@ flutter:
     - assets/fonts/Roboto-Regular.ttf
     - assets/fonts/Roboto-Bold.ttf
     - assets/images/pausal_logo.png
+    - assets/images/landing.png
     - assets/images/arrow_down.svg
     - assets/images/book.svg
     - assets/images/calendar.svg

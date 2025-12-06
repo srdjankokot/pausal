@@ -66,7 +66,11 @@ class GoogleAuthService {
     _currentAccount = null;
     _cachedUser = null;
     _cachedCredentials = null;
-    _currentClient?.close();
+    try {
+      _currentClient?.close();
+    } catch (_) {
+      // ignore - client may have already been closed
+    }
     _currentClient = null;
     await _clearPersistedSession();
     await _setLogoutFlag(true);

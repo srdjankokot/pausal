@@ -76,6 +76,7 @@
   "navLedger": "Knjiga",
   "navClients": "Klijenti",
   "navProfile": "Profil",
+  "navLogOut": "Odjavi se",
 
   "googleSheetsSync": "Google Sheets sinhronizacija",
   "connectGoogleSheets": "Poveži Google Sheets",

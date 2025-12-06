@@ -452,6 +452,12 @@ abstract class AppLocalizations {
   /// **'Profil'**
   String get navProfile;
 
+  /// No description provided for @navLogOut.
+  ///
+  /// In sr, this message translates to:
+  /// **'Odjavi se'**
+  String get navLogOut;
+
   /// No description provided for @googleSheetsSync.
   ///
   /// In sr, this message translates to:

@@ -205,6 +205,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navProfile => 'Profile';
 
   @override
+  String get navLogOut => 'Log Out';
+
+  @override
   String get googleSheetsSync => 'Google Sheets synchronization';
 
   @override

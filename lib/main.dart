@@ -62,8 +62,9 @@ class _PausalAppState extends State<PausalApp> {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => LandingPage(onLanguageChange: _changeLanguage),
-        '/app': (context) => PausalHome(onLanguageChange: _changeLanguage),
+        '/': (context) => PausalHome(onLanguageChange: _changeLanguage),
+        '/about': (context) => LandingPage(onLanguageChange: _changeLanguage),
+        // '/app': (context) => PausalHome(onLanguageChange: _changeLanguage),
         '/privacy_policy': (context) => PrivacyPolicyPage(onLanguageChange: _changeLanguage),
       },
     );

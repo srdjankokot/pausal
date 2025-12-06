@@ -73,6 +73,7 @@
   "navLedger": "Ledger",
   "navClients": "Clients",
   "navProfile": "Profile",
+  "navLogOut": "Log Out",
 
   "googleSheetsSync": "Google Sheets synchronization",
   "connectGoogleSheets": "Connect Google Sheets",

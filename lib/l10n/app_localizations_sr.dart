@@ -206,6 +206,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get navProfile => 'Profil';
 
   @override
+  String get navLogOut => 'Odjavi se';
+
+  @override
   String get googleSheetsSync => 'Google Sheets sinhronizacija';
 
   @override
