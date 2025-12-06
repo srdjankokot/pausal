@@ -209,6 +209,27 @@ class AppLocalizationsSr extends AppLocalizations {
   String get navLogOut => 'Odjavi se';
 
   @override
+  String get ledgerPageTitle => 'Knjiga poslovanja';
+
+  @override
+  String get ledgerPageSubtitle => 'Lista svih prihoda i rashoda';
+
+  @override
+  String get selectPeriod => 'Odaberite period';
+
+  @override
+  String get invoiceNumberShort => 'Broj fakture';
+
+  @override
+  String get issueDate => 'Datum izdavanja';
+
+  @override
+  String get invoiceAmount => 'Iznos fakture';
+
+  @override
+  String get downloadAll => 'Preuzmi sve';
+
+  @override
   String get googleSheetsSync => 'Google Sheets sinhronizacija';
 
   @override

@@ -78,6 +78,14 @@
   "navProfile": "Podešavanje",
   "navLogOut": "Odjavi se",
 
+  "ledgerPageTitle": "Knjiga poslovanja",
+  "ledgerPageSubtitle": "Lista svih prihoda i rashoda",
+  "selectPeriod": "Odaberite period",
+  "invoiceNumberShort": "Broj fakture",
+  "issueDate": "Datum izdavanja",
+  "invoiceAmount": "Iznos fakture",
+  "downloadAll": "Preuzmi sve",
+
   "googleSheetsSync": "Google Sheets sinhronizacija",
   "connectGoogleSheets": "Poveži Google Sheets",
   "connectSheetHeading": "Povežite Google Sheets nalog",

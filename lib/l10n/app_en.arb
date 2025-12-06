@@ -75,6 +75,14 @@
   "navProfile": "Profile",
   "navLogOut": "Log Out",
 
+  "ledgerPageTitle": "Business Book",
+  "ledgerPageSubtitle": "List of all incomes and expenses",
+  "selectPeriod": "Select period",
+  "invoiceNumberShort": "Invoice number",
+  "issueDate": "Issue date",
+  "invoiceAmount": "Invoice amount",
+  "downloadAll": "Download all",
+
   "googleSheetsSync": "Google Sheets synchronization",
   "connectGoogleSheets": "Connect Google Sheets",
   "connectSheetHeading": "Connect Google Sheets account",

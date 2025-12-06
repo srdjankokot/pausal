@@ -458,6 +458,48 @@ abstract class AppLocalizations {
   /// **'Odjavi se'**
   String get navLogOut;
 
+  /// No description provided for @ledgerPageTitle.
+  ///
+  /// In sr, this message translates to:
+  /// **'Knjiga poslovanja'**
+  String get ledgerPageTitle;
+
+  /// No description provided for @ledgerPageSubtitle.
+  ///
+  /// In sr, this message translates to:
+  /// **'Lista svih prihoda i rashoda'**
+  String get ledgerPageSubtitle;
+
+  /// No description provided for @selectPeriod.
+  ///
+  /// In sr, this message translates to:
+  /// **'Odaberite period'**
+  String get selectPeriod;
+
+  /// No description provided for @invoiceNumberShort.
+  ///
+  /// In sr, this message translates to:
+  /// **'Broj fakture'**
+  String get invoiceNumberShort;
+
+  /// No description provided for @issueDate.
+  ///
+  /// In sr, this message translates to:
+  /// **'Datum izdavanja'**
+  String get issueDate;
+
+  /// No description provided for @invoiceAmount.
+  ///
+  /// In sr, this message translates to:
+  /// **'Iznos fakture'**
+  String get invoiceAmount;
+
+  /// No description provided for @downloadAll.
+  ///
+  /// In sr, this message translates to:
+  /// **'Preuzmi sve'**
+  String get downloadAll;
+
   /// No description provided for @googleSheetsSync.
   ///
   /// In sr, this message translates to:

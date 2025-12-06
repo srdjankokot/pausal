@@ -208,6 +208,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navLogOut => 'Log Out';
 
   @override
+  String get ledgerPageTitle => 'Business Book';
+
+  @override
+  String get ledgerPageSubtitle => 'List of all incomes and expenses';
+
+  @override
+  String get selectPeriod => 'Select period';
+
+  @override
+  String get invoiceNumberShort => 'Invoice number';
+
+  @override
+  String get issueDate => 'Issue date';
+
+  @override
+  String get invoiceAmount => 'Invoice amount';
+
+  @override
+  String get downloadAll => 'Download all';
+
+  @override
   String get googleSheetsSync => 'Google Sheets synchronization';
 
   @override
