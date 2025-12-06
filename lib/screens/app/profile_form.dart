@@ -160,235 +160,452 @@ class _ProfileFormState extends State<ProfileForm> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Form(
       key: _formKey,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final isWide = constraints.maxWidth > 900;
-
-          final companyCard = Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Podaci o firmi',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _companyNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Naziv firme',
-                    border: OutlineInputBorder(),
-                  ),
-                  textCapitalization: TextCapitalization.words,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Unesite naziv';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _companyShortNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Skraćeni naziv (opciono)',
-                    border: OutlineInputBorder(),
-                  ),
-                  textCapitalization: TextCapitalization.words,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _companyResponsibleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Odgovorno lice',
-                    border: OutlineInputBorder(),
-                  ),
-                  textCapitalization: TextCapitalization.words,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _companyPibController,
-                  decoration: const InputDecoration(
-                    labelText: 'PIB',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _companyAddressController,
-                  decoration: const InputDecoration(
-                    labelText: 'Adresa',
-                    border: OutlineInputBorder(),
-                  ),
-                  textCapitalization: TextCapitalization.sentences,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _companyAccountController,
-                  decoration: const InputDecoration(
-                    labelText: 'Broj računa',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.text,
-                ),
-              ],
-            ),
-          );
-
-          final taxCard = Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Poreski podaci paušala',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _cityController,
-                  decoration: const InputDecoration(
-                    labelText: 'Grad',
-                    border: OutlineInputBorder(),
-                  ),
-                  textCapitalization: TextCapitalization.sentences,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _pensionController,
-                  decoration: const InputDecoration(
-                    labelText: 'PIO doprinos (mesečno)',
-                    suffixText: 'RSD',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: validatePositiveNumber,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _healthController,
-                  decoration: const InputDecoration(
-                    labelText: 'Zdravstveno osiguranje (mesečno)',
-                    suffixText: 'RSD',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: validatePositiveNumber,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _taxController,
-                  decoration: const InputDecoration(
-                    labelText: 'Akontacija poreza (mesečno)',
-                    suffixText: 'RSD',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: validatePositiveNumber,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _limitController,
-                  decoration: const InputDecoration(
-                    labelText: 'Godišnji limit prihoda',
-                    suffixText: 'RSD',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: validatePositiveNumber,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _rollingLimitController,
-                  decoration: const InputDecoration(
-                    labelText: 'Limit u poslednjih 12 meseci',
-                    suffixText: 'RSD',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: validatePositiveNumber,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _rateController,
-                  decoration: const InputDecoration(
-                    labelText: 'Dodatni porez (u %)',
-                    suffixText: '%',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  validator: (value) {
-                    final parsed = double.tryParse(value ?? '');
-                    if (parsed == null || parsed < 0) {
-                      return 'Unesite broj veći ili jednak nuli';
-                    }
-                    return null;
-                  },
-                ),
-              ],
-            ),
-          );
-
-          return Column(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (isWide)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: companyCard),
-                    const SizedBox(width: 16),
-                    Expanded(child: taxCard),
-                  ],
-                )
-              else ...[
-                companyCard,
-                const SizedBox(height: 20),
-                taxCard,
-              ],
+              // Header
+              Text(
+                'Podešavanje profila',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF111111),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Ažurirajte podatke o vašoj firmi.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[600],
+                ),
+              ),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
+
+              // Company Info Section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'PODACI O FIRMI',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[500],
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth > 900;
+
+                      if (isWide) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _companyNameController,
+                                label: 'Naziv firme',
+                                isRequired: true,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Unesite naziv';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _companyAddressController,
+                                label: 'Adresa firme',
+                                isRequired: true,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _cityController,
+                                label: 'Grad',
+                                isRequired: true,
+                              ),
+                            ),
+                          ],
+                        );
+                      } else {
+                        return Column(
+                          children: [
+                            _buildTextField(
+                              controller: _companyNameController,
+                              label: 'Naziv firme',
+                              isRequired: true,
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Unesite naziv';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            _buildTextField(
+                              controller: _companyAddressController,
+                              label: 'Adresa firme',
+                              isRequired: true,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildTextField(
+                              controller: _cityController,
+                              label: 'Grad',
+                              isRequired: true,
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+              Divider(color: Colors.grey[300], thickness: 1),
+              const SizedBox(height: 24),
+
+              // Legal Identification Section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'PRAVNA IDENTIFIKACIJA',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[500],
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth > 900;
+
+                      if (isWide) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _companyResponsibleController,
+                                label: 'Odgovorno lice',
+                                isRequired: true,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _companyPibController,
+                                label: 'PIB',
+                                isRequired: true,
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _companyAccountController,
+                                label: 'Broj računa',
+                                isRequired: true,
+                              ),
+                            ),
+                          ],
+                        );
+                      } else {
+                        return Column(
+                          children: [
+                            _buildTextField(
+                              controller: _companyResponsibleController,
+                              label: 'Odgovorno lice',
+                              isRequired: true,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildTextField(
+                              controller: _companyPibController,
+                              label: 'PIB',
+                              isRequired: true,
+                              keyboardType: TextInputType.number,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildTextField(
+                              controller: _companyAccountController,
+                              label: 'Broj računa',
+                              isRequired: true,
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+              Divider(color: Colors.grey[300], thickness: 1),
+              const SizedBox(height: 24),
+
+              // Mandatory Contributions Section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'OBAVEZNI DOPRINOSI',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[500],
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth > 900;
+
+                      if (isWide) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _pensionController,
+                                label: 'PIO doprinos (mesečno)',
+                                isRequired: true,
+                                keyboardType: TextInputType.number,
+                                validator: validatePositiveNumber,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _healthController,
+                                label: 'Zdravstveno osiguranje',
+                                isRequired: true,
+                                keyboardType: TextInputType.number,
+                                validator: validatePositiveNumber,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _taxController,
+                                label: 'Akontacija poreza (mesečno)',
+                                isRequired: true,
+                                keyboardType: TextInputType.number,
+                                validator: validatePositiveNumber,
+                              ),
+                            ),
+                          ],
+                        );
+                      } else {
+                        return Column(
+                          children: [
+                            _buildTextField(
+                              controller: _pensionController,
+                              label: 'PIO doprinos (mesečno)',
+                              isRequired: true,
+                              keyboardType: TextInputType.number,
+                              validator: validatePositiveNumber,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildTextField(
+                              controller: _healthController,
+                              label: 'Zdravstveno osiguranje',
+                              isRequired: true,
+                              keyboardType: TextInputType.number,
+                              validator: validatePositiveNumber,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildTextField(
+                              controller: _taxController,
+                              label: 'Akontacija poreza (mesečno)',
+                              isRequired: true,
+                              keyboardType: TextInputType.number,
+                              validator: validatePositiveNumber,
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+              Divider(color: Colors.grey[300], thickness: 1),
+              const SizedBox(height: 24),
+
+              // Income & Limits Section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'PRIHOD I LIMIT',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[500],
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth > 900;
+
+                      if (isWide) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _limitController,
+                                label: 'Godišnji limit prihoda',
+                                isRequired: true,
+                                keyboardType: TextInputType.number,
+                                validator: validatePositiveNumber,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _rollingLimitController,
+                                label: 'Limit u poslednjih 12 meseci',
+                                isRequired: true,
+                                keyboardType: TextInputType.number,
+                                validator: validatePositiveNumber,
+                              ),
+                            ),
+                          ],
+                        );
+                      } else {
+                        return Column(
+                          children: [
+                            _buildTextField(
+                              controller: _limitController,
+                              label: 'Godišnji limit prihoda',
+                              isRequired: true,
+                              keyboardType: TextInputType.number,
+                              validator: validatePositiveNumber,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildTextField(
+                              controller: _rollingLimitController,
+                              label: 'Limit u poslednjih 12 meseci',
+                              isRequired: true,
+                              keyboardType: TextInputType.number,
+                              validator: validatePositiveNumber,
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 32),
+
+              // Save Button
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
                   onPressed: _submit,
-                  child: const Text('Sačuvaj promene'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF111111),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Sačuvaj promene',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
+                  ),
                 ),
               ),
             ],
-          );
-        },
+          ),
+        ),
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    bool isRequired = false,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RichText(
+          text: TextSpan(
+            text: label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF111111),
+            ),
+            children: [
+              if (isRequired)
+                const TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: Colors.red),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          validator: validator,
+          decoration: InputDecoration(
+            hintText: 'Ime postojećeg klijenta',
+            hintStyle: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 14,
+            ),
+            filled: true,
+            fillColor: Colors.grey[50],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xFF111111), width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Colors.red),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+      ],
     );
   }
 }

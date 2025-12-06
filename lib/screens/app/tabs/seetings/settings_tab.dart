@@ -41,36 +41,36 @@ class SettingsTab extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
         children: [
-          Text(
-            'Paušal profil',
-            style: Theme.of(
-              context,
-            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Ažurirajte podatke o firmi i paušalu. Podaci o firmi se pojavljuju na generisanim fakturama.',
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
-          ),
-          const SizedBox(height: 16),
-          GoogleSheetsCard(
-            isConnected: isConnected,
-            isSyncing: isSyncing,
-            spreadsheetId: spreadsheetId,
-            expensesSheet: expensesSheet,
-            clientsSheet: clientsSheet,
-            profileSheet: profileSheet,
-            userEmail: userEmail,
-            onConnectSheets: () {
-              return onConnectSheets();
-            },
-            onDisconnectSheets: () {
-              return onDisconnectSheets();
-            },
-          ),
-          const SizedBox(height: 24),
+          // Text(
+          //   'Paušal profil',
+          //   style: Theme.of(
+          //     context,
+          //   ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          // ),
+          // const SizedBox(height: 8),
+          // Text(
+          //   'Ažurirajte podatke o firmi i paušalu. Podaci o firmi se pojavljuju na generisanim fakturama.',
+          //   style: Theme.of(
+          //     context,
+          //   ).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
+          // ),
+          // const SizedBox(height: 16),
+          // GoogleSheetsCard(
+          //   isConnected: isConnected,
+          //   isSyncing: isSyncing,
+          //   spreadsheetId: spreadsheetId,
+          //   expensesSheet: expensesSheet,
+          //   clientsSheet: clientsSheet,
+          //   profileSheet: profileSheet,
+          //   userEmail: userEmail,
+          //   onConnectSheets: () {
+          //     return onConnectSheets();
+          //   },
+          //   onDisconnectSheets: () {
+          //     return onDisconnectSheets();
+          //   },
+          // ),
+          // const SizedBox(height: 24),
           IgnorePointer(
             ignoring: !isConnected,
             child: Opacity(

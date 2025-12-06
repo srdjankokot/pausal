@@ -203,7 +203,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get navClients => 'Klijenti';
 
   @override
-  String get navProfile => 'Profil';
+  String get navProfile => 'Podešavanje';
 
   @override
   String get navLogOut => 'Odjavi se';

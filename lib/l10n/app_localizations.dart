@@ -449,7 +449,7 @@ abstract class AppLocalizations {
   /// No description provided for @navProfile.
   ///
   /// In sr, this message translates to:
-  /// **'Profil'**
+  /// **'Podešavanje'**
   String get navProfile;
 
   /// No description provided for @navLogOut.
