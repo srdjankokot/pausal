@@ -184,7 +184,6 @@ class _LedgerTabState extends State<LedgerTab>
                   lastDate: DateTime.now().add(const Duration(days: 365)),
                   initialDateRange: _selectedDateRange,
                   useRootNavigator: false,
-                  locale: const Locale('sr', 'Latn'),
                   builder: (context, child) {
                     return Theme(
                       data: Theme.of(context).copyWith(

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:pausal_calculator/screens/app/invoice_item.dart';
 
 enum LedgerKind { invoice, expense }
@@ -108,26 +109,43 @@ class LedgerEntry {
         final decoded = jsonDecode(raw);
         if (decoded is List) {
           return decoded
-              .where((element) => element is Map)
+              .whereType<Map>()
               .map(
-                (element) => InvoiceItem.fromJson(
-                  Map<String, dynamic>.from(element as Map),
-                ),
+                (element) {
+                  try {
+                    return InvoiceItem.fromJson(
+                      Map<String, dynamic>.from(element),
+                    );
+                  } catch (e) {
+                    // Skip malformed items
+                    return null;
+                  }
+                },
               )
+              .whereType<InvoiceItem>()
               .toList();
         }
       } else if (raw is List) {
         return raw
-            .where((element) => element is Map)
+            .whereType<Map>()
             .map(
-              (element) => InvoiceItem.fromJson(
-                Map<String, dynamic>.from(element as Map),
-              ),
+              (element) {
+                try {
+                  return InvoiceItem.fromJson(
+                    Map<String, dynamic>.from(element),
+                  );
+                } catch (e) {
+                  // Skip malformed items
+                  return null;
+                }
+              },
             )
+            .whereType<InvoiceItem>()
             .toList();
       }
-    } catch (_) {
+    } catch (e) {
       // ignore malformed data
+      debugPrint('Error parsing invoice items: $e');
     }
     return const [];
   }

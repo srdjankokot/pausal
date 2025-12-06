@@ -54,7 +54,6 @@ class _PausalHomeState extends State<PausalHome> {
   bool _isConnecting = false;
   bool _isCheckingStructure = false;
   double _structureProgress = 0;
-  String _structureStatus = '';
 
   bool get _isConnected => _sheetsService != null;
 
@@ -143,7 +142,6 @@ class _PausalHomeState extends State<PausalHome> {
     if (!mounted) return;
     setState(() {
       _isCheckingStructure = true;
-      _structureStatus = status;
       _structureProgress = progress.clamp(0, 1);
     });
   }
@@ -152,7 +150,6 @@ class _PausalHomeState extends State<PausalHome> {
     if (!mounted) return;
     setState(() {
       _isCheckingStructure = false;
-      _structureStatus = '';
       _structureProgress = 0;
     });
   }
@@ -440,12 +437,16 @@ class _PausalHomeState extends State<PausalHome> {
       debugPrint('Silent session restore failed: $error');
       debugPrint('$stack');
       if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.autoConnectFailed),
-          ),
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            final l10n = AppLocalizations.of(context)!;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.autoConnectFailed),
+              ),
+            );
+          }
+        });
       }
     } finally {
       if (mounted) {
@@ -1533,46 +1534,31 @@ class _PausalHomeState extends State<PausalHome> {
                         horizontal: 28,
                         vertical: 22,
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _structureStatus.isEmpty
-                                ? l10n.syncingWithSheets
-                                : _structureStatus,
-                            style: theme.textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 12),
-                          LinearProgressIndicator(
-                            value: _structureProgress <= 0
-                                ? null
-                                : _structureProgress.clamp(0, 1),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  _structureStatus.isEmpty
-                                      ? l10n.checkingSheetsHeaders
-                                      : l10n.loadingData,
-                                  style: theme.textTheme.bodyMedium,
-                                ),
+                      child: SizedBox(
+                        width: 120,
+                        height: 120,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            SizedBox(
+                              width: 120,
+                              height: 120,
+                              child: CircularProgressIndicator(
+                                value: _structureProgress <= 0
+                                    ? null
+                                    : _structureProgress.clamp(0, 1),
+                                strokeWidth: 8,
+                                backgroundColor: Colors.grey[200],
                               ),
-                              const SizedBox(width: 12),
-                              Text(
-                                '${(_structureProgress * 100).clamp(0, 100).round()}%',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures()
-                                  ],
-                                ),
+                            ),
+                            Text(
+                              '${(_structureProgress * 100).clamp(0, 100).round()}%',
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
