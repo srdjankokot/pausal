@@ -18,26 +18,24 @@ class ConnectSheetPlaceholder extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isWide = constraints.maxWidth > 900;
-          
-          
-          return Positioned.fill(
-              child: Padding(
-                padding: EdgeInsets.all(isWide ? 32 : 20),
-                child: isWide
-                    ? Row(
-                        children: [
-                          Expanded(child: _buildIntroPanel(context, isWide)),
-                          const SizedBox(width: 18),
-                          Expanded(child: _buildVisualPanel(context, isWide)),
-                        ],
-                      )
-                    : Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildIntroPanel(context, isWide),
-                        ],
-                      ),
-              ),
+
+
+          return Padding(
+            padding: EdgeInsets.all(isWide ? 32 : 20),
+            child: isWide
+                ? Row(
+                    children: [
+                      Expanded(child: _buildIntroPanel(context, isWide)),
+                      const SizedBox(width: 18),
+                      Expanded(child: _buildVisualPanel(context, isWide)),
+                    ],
+                  )
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildIntroPanel(context, isWide),
+                    ],
+                  ),
           );
         },
       ),
