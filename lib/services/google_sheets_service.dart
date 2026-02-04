@@ -63,9 +63,11 @@ class GoogleSheetsService {
           'Napomena',
           'Klijent ID',
           'Stavke',
+          'Valuta',
+          'Kurs',
         ]
       ),
-      (clientsSheet, ['ID', 'Naziv', 'PIB', 'Adresa']),
+      (clientsSheet, ['ID', 'Naziv', 'PIB', 'Adresa', 'Strani klijent']),
       (profileSheet, ['Sekcija', 'Polje', 'Vrednost']),
     ];
 
@@ -107,6 +109,8 @@ class GoogleSheetsService {
           entry['note'] ?? '',
           entry['clientId'] ?? '',
           itemsJson,
+          entry['currency'] ?? 'RSD',
+          entry['exchangeRate'] ?? 1.0,
         ];
       }).toList();
 
@@ -121,6 +125,7 @@ class GoogleSheetsService {
           client['name'] ?? '',
           client['pib'] ?? '',
           client['address'] ?? '',
+          client['isForeign'] ?? false,
         ];
       }).toList();
 
@@ -158,6 +163,8 @@ class GoogleSheetsService {
             entry['note'] ?? '',
             entry['clientId'] ?? '',
             jsonEncode(entry['items'] ?? const []),
+            entry['currency'] ?? 'RSD',
+            entry['exchangeRate'] ?? 1.0,
           ],
         ],
       ),
@@ -176,6 +183,7 @@ class GoogleSheetsService {
             client['name'] ?? '',
             client['pib'] ?? '',
             client['address'] ?? '',
+            client['isForeign'] ?? false,
           ],
         ],
       ),
@@ -188,13 +196,13 @@ class GoogleSheetsService {
   Future<List<Map<String, dynamic>>> fetchEntries() async {
     final response = await _api.spreadsheets.values.get(
       _spreadsheetId,
-      '$expensesSheet!A2:I',
+      '$expensesSheet!A2:K',
     );
 
     final values = response.values ?? [];
     return values.where((row) => row.isNotEmpty).map((row) {
       final cells = List<String>.generate(
-        9,
+        11,
         (index) => index < row.length ? row[index]?.toString() ?? '' : '',
       );
       List<dynamic> items = const [];
@@ -218,6 +226,8 @@ class GoogleSheetsService {
         'note': cells[6],
         'clientId': cells[7],
         'items': items,
+        'currency': cells[9].isEmpty ? 'RSD' : cells[9],
+        'exchangeRate': double.tryParse(cells[10]) ?? 1.0,
       };
     }).toList();
   }
@@ -225,12 +235,12 @@ class GoogleSheetsService {
   Future<List<Map<String, dynamic>>> fetchClients() async {
     final response = await _api.spreadsheets.values.get(
       _spreadsheetId,
-      '$clientsSheet!A2:D',
+      '$clientsSheet!A2:E',
     );
     final values = response.values ?? [];
     return values.where((row) => row.isNotEmpty).map((row) {
       final cells = List<String>.generate(
-        4,
+        5,
         (index) => index < row.length ? row[index]?.toString() ?? '' : '',
       );
       return {
@@ -238,6 +248,7 @@ class GoogleSheetsService {
         'name': cells[1],
         'pib': cells[2],
         'address': cells[3],
+        'isForeign': cells[4].toLowerCase() == 'true',
       };
     }).toList();
   }
@@ -279,6 +290,8 @@ class GoogleSheetsService {
         'pib': company['pib'] ?? '',
         'address': company['address'] ?? '',
         'accountNumber': company['accountNumber'] ?? '',
+        'iban': company['iban'] ?? '',
+        'swift': company['swift'] ?? '',
       };
     }
 

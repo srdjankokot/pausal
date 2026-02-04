@@ -74,6 +74,7 @@ Widget buildCurrencyText(
   Color? currencyColor,
   TextAlign textAlign = TextAlign.start,
   bool includeDecimals = true,
+  String currency = 'RSD',
 }) {
   final formattedValue = formatCurrency(value, includeCurrency: false, includeDecimals: includeDecimals);
   return RichText(
@@ -89,7 +90,7 @@ Widget buildCurrencyText(
           ),
         ),
         TextSpan(
-          text: ' RSD',
+          text: ' $currency',
           style: TextStyle(
             color: currencyColor ?? Colors.grey[500],
             fontSize: currencyFontSize,
@@ -120,12 +121,404 @@ Future<void> ensureInvoiceFonts() async {
   );
 }
 
+Future<Uint8List> buildInvoicePdfEnglish(
+  LedgerEntry entry,
+  Client client,
+  CompanyProfile company,
+  TaxProfile profile,
+) async {
+  await ensureInvoiceFonts();
+  final pdf = pw.Document(
+    theme: pw.ThemeData.withFont(
+      base: _invoiceFontRegular!,
+      bold: _invoiceFontBold!,
+    ),
+  );
+  final issueDate = formatDate(entry.date);
+  final dueDate = formatDate(entry.date.add(const Duration(days: 14)));
+  final generatedOn = formatDate(DateTime.now());
+  final amountText = formatCurrency(entry.amount, includeCurrency: false) + ' ${entry.currency}';
+  final noteText = entry.note?.trim().isNotEmpty == true
+      ? entry.note!.trim()
+      : '—';
+  final inferredNumber =
+      '${entry.date.month.toString().padLeft(2, '0')}-${entry.date.year}';
+  final invoiceNumber = entry.invoiceNumber?.trim().isNotEmpty == true
+      ? entry.invoiceNumber!.trim()
+      : inferredNumber;
+
+  final items = entry.items.isNotEmpty
+      ? entry.items
+      : [
+          InvoiceItem(
+            description: entry.title,
+            unit: 'service',
+            quantity: 1,
+            unitPrice: entry.amount,
+          ),
+        ];
+  String formatQuantity(double value) =>
+      value % 1 == 0 ? value.toStringAsFixed(0) : value.toStringAsFixed(2);
+  String tableCurrency(double value) =>
+      formatCurrency(value, includeCurrency: false);
+  String translateUnit(String unit) {
+    switch (unit.toLowerCase()) {
+      case 'radni sat':
+        return 'hour';
+      case 'kom':
+        return 'pcs';
+      default:
+        return unit;
+    }
+  }
+
+  pdf.addPage(
+    pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(32),
+      build: (context) => pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Container(
+            padding: const pw.EdgeInsets.only(bottom: 12),
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(
+                bottom: pw.BorderSide(color: PdfColors.grey400, width: 1),
+              ),
+            ),
+            child: pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    if (company.shortName.isNotEmpty)
+                      pw.Text(
+                        company.shortName,
+                        style: pw.TextStyle(
+                          fontSize: 16,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+
+                    if (company.name.isNotEmpty)
+                      pw.Text(company.name, style: pw.TextStyle(fontSize: 10)),
+
+                    if (company.address.isNotEmpty)
+                      pw.Text(
+                        company.address,
+                        style: const pw.TextStyle(fontSize: 10),
+                      ),
+
+                    pw.Text(
+                      profile.city,
+                      style: const pw.TextStyle(fontSize: 10),
+                    ),
+                  ],
+                ),
+                pw.SizedBox(width: 24),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    if (company.pib.isNotEmpty)
+                      pw.Text(
+                        'Tax ID: ${company.pib}',
+                        style: const pw.TextStyle(fontSize: 10),
+                      ),
+                    if (company.iban.isNotEmpty)
+                      pw.Text(
+                        'IBAN: ${company.iban}',
+                        style: const pw.TextStyle(fontSize: 10),
+                      ),
+                    if (company.swift.isNotEmpty)
+                      pw.Text(
+                        'SWIFT: ${company.swift}',
+                        style: const pw.TextStyle(fontSize: 10),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          pw.SizedBox(height: 16),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    'Invoice No.: $invoiceNumber',
+                    style: pw.TextStyle(
+                      fontSize: 16,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.Text(
+                    'Invoice Date: $issueDate',
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
+                  pw.Text(
+                    'Due Date: $dueDate',
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
+                ],
+              ),
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                children: [
+                  pw.Text(
+                    '${profile.city}, ${issueDate}',
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 20),
+          pw.Container(
+            padding: const pw.EdgeInsets.all(10),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColors.grey300, width: 1),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'Client',
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 6),
+                pw.Text(client.name, style: const pw.TextStyle(fontSize: 12)),
+                if (client.pib.isNotEmpty)
+                  pw.Text(
+                    'Tax ID: ${client.pib}',
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
+                if (client.address.isNotEmpty)
+                  pw.Text(
+                    client.address,
+                    style: const pw.TextStyle(fontSize: 11),
+                  ),
+              ],
+            ),
+          ),
+          pw.SizedBox(height: 20),
+          pw.Table(
+            border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.8),
+            columnWidths: {
+              0: const pw.FixedColumnWidth(32),
+              1: const pw.FlexColumnWidth(3),
+              2: const pw.FlexColumnWidth(1.2),
+              3: const pw.FlexColumnWidth(1),
+              4: const pw.FlexColumnWidth(1.4),
+              5: const pw.FlexColumnWidth(1.4),
+            },
+            children: [
+              pw.TableRow(
+                decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                verticalAlignment: pw.TableCellVerticalAlignment.middle,
+                children: [
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(8),
+                    child: pw.Text(
+                      'No.',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(8),
+                    child: pw.Text(
+                      'Description',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                  ),
+
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(8),
+                    child: pw.Container(
+                      width: 50,
+                      child: pw.Text(
+                        'Unit',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                    ),
+                  ),
+
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(8),
+                    child: pw.Text(
+                      'Quantity',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                  ),
+
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(8),
+                    child: pw.Text(
+                      'Unit Price (${entry.currency})',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(8),
+                    child: pw.Text(
+                      'Total (${entry.currency})',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              ...items.asMap().entries.map((itemEntry) {
+                final index = itemEntry.key + 1;
+                final item = itemEntry.value;
+                final description = item.description.trim().isEmpty
+                    ? '—'
+                    : item.description;
+                return pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8),
+                      child: pw.Text(index.toString()),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8),
+                      child: pw.Text(description),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8),
+                      child: pw.Text(translateUnit(item.unit)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8),
+                      child: pw.Text(formatQuantity(item.quantity)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8),
+                      child: pw.Text(tableCurrency(item.unitPrice)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(8),
+                      child: pw.Text(tableCurrency(item.total)),
+                    ),
+                  ],
+                );
+              }),
+            ],
+          ),
+          pw.SizedBox(height: 16),
+          pw.Align(
+            alignment: pw.Alignment.centerRight,
+            child: pw.Text(
+              'TOTAL AMOUNT  $amountText',
+              style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+            ),
+          ),
+          pw.Divider(height: 1, thickness: 1),
+          pw.SizedBox(height: 6),
+          pw.Text(
+            'The issuer is not a VAT payer under Article 33 of the VAT Law',
+            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+          ),
+          pw.Text(
+            'The issuer is a lump-sum taxpayer under Article 42 of the Income Tax Law',
+            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+          ),
+
+          if (noteText != '—') ...[
+            pw.SizedBox(height: 12),
+            pw.Text(
+              'Additional Note:',
+              style: const pw.TextStyle(fontSize: 10),
+            ),
+            pw.Text(noteText, style: const pw.TextStyle(fontSize: 10)),
+          ],
+
+          pw.SizedBox(height: 12),
+          pw.Text(
+            'Payment Method: Wire Transfer',
+            style: const pw.TextStyle(fontSize: 11),
+          ),
+          pw.Text(
+            'Payment Terms: 14 days',
+            style: const pw.TextStyle(fontSize: 11),
+          ),
+
+          pw.SizedBox(height: 12),
+          if (company.iban.isNotEmpty)
+            pw.Text(
+              'IBAN: ${company.iban}',
+              style: const pw.TextStyle(fontSize: 11),
+            ),
+          if (company.swift.isNotEmpty)
+            pw.Text(
+              'SWIFT/BIC: ${company.swift}',
+              style: const pw.TextStyle(fontSize: 11),
+            ),
+          pw.Text(
+            'Reference Number: $invoiceNumber',
+            style: const pw.TextStyle(fontSize: 11),
+          ),
+          pw.SizedBox(height: 24),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [],
+              ),
+              pw.Column(
+                children: [
+                  pw.Text(
+                    'Authorized Person',
+                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.SizedBox(height: 24),
+                  pw.Container(
+                    width: 160,
+                    decoration: const pw.BoxDecoration(
+                      border: pw.Border(
+                        top: pw.BorderSide(color: PdfColors.grey500, width: 1),
+                      ),
+                    ),
+                    alignment: pw.Alignment.center,
+                    padding: const pw.EdgeInsets.only(top: 4),
+                    child: pw.Text(
+                      company.responsiblePerson.isNotEmpty
+                          ? company.responsiblePerson
+                          : (company.shortName.isNotEmpty
+                                ? company.shortName
+                                : company.name),
+                      style: const pw.TextStyle(fontSize: 10),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 16),
+        ],
+      ),
+    ),
+  );
+
+  return pdf.save();
+}
+
 Future<Uint8List> buildInvoicePdf(
   LedgerEntry entry,
   Client client,
   CompanyProfile company,
   TaxProfile profile,
 ) async {
+  // Route to English version for foreign clients
+  if (client.isForeign) {
+    return buildInvoicePdfEnglish(entry, client, company, profile);
+  }
+
+  // Original Serbian version for domestic clients
   await ensureInvoiceFonts();
   final pdf = pw.Document(
     theme: pw.ThemeData.withFont(

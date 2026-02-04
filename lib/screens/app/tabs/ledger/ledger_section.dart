@@ -113,6 +113,7 @@ class LedgerSection extends StatelessWidget {
                                   currencyFontSize: 9,
                                   numberWeight: FontWeight.bold,
                                   numberColor: Colors.black87,
+                                  currency: item.currency,
                                 ),
                                 PopupMenuButton<String>(
                                   tooltip: 'Radnje',

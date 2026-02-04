@@ -34,6 +34,8 @@ class _ProfileFormState extends State<ProfileForm> {
   late TextEditingController _companyAddressController;
   late TextEditingController _companyAccountController;
   late TextEditingController _companyResponsibleController;
+  late TextEditingController _companyIbanController;
+  late TextEditingController _companySwiftController;
 
   @override
   void initState() {
@@ -75,6 +77,12 @@ class _ProfileFormState extends State<ProfileForm> {
     _companyResponsibleController = TextEditingController(
       text: widget.companyProfile.responsiblePerson,
     );
+    _companyIbanController = TextEditingController(
+      text: widget.companyProfile.iban,
+    );
+    _companySwiftController = TextEditingController(
+      text: widget.companyProfile.swift,
+    );
   }
 
   @override
@@ -103,6 +111,8 @@ class _ProfileFormState extends State<ProfileForm> {
       _companyAccountController.text = widget.companyProfile.accountNumber;
       _companyResponsibleController.text =
           widget.companyProfile.responsiblePerson;
+      _companyIbanController.text = widget.companyProfile.iban;
+      _companySwiftController.text = widget.companyProfile.swift;
     }
   }
 
@@ -121,6 +131,8 @@ class _ProfileFormState extends State<ProfileForm> {
     _companyAddressController.dispose();
     _companyAccountController.dispose();
     _companyResponsibleController.dispose();
+    _companyIbanController.dispose();
+    _companySwiftController.dispose();
     super.dispose();
   }
 
@@ -150,6 +162,8 @@ class _ProfileFormState extends State<ProfileForm> {
       pib: _companyPibController.text.trim(),
       address: _companyAddressController.text.trim(),
       accountNumber: _companyAccountController.text.trim(),
+      iban: _companyIbanController.text.trim(),
+      swift: _companySwiftController.text.trim(),
     );
 
     widget.onProfilesChanged(updatedProfile, updatedCompany);
@@ -357,6 +371,71 @@ class _ProfileFormState extends State<ProfileForm> {
               Divider(color: Colors.grey[300], thickness: 1),
               const SizedBox(height: 24),
 
+              // International Banking Section
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'MEĐUNARODNO BANKARSTVO (za strane klijente)',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[500],
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isWide = constraints.maxWidth > 900;
+
+                      if (isWide) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: _buildTextField(
+                                controller: _companyIbanController,
+                                label: 'IBAN',
+                                isRequired: false,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextField(
+                                controller: _companySwiftController,
+                                label: 'SWIFT/BIC',
+                                isRequired: false,
+                              ),
+                            ),
+                          ],
+                        );
+                      } else {
+                        return Column(
+                          children: [
+                            _buildTextField(
+                              controller: _companyIbanController,
+                              label: 'IBAN',
+                              isRequired: false,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildTextField(
+                              controller: _companySwiftController,
+                              label: 'SWIFT/BIC',
+                              isRequired: false,
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+              Divider(color: Colors.grey[300], thickness: 1),
+              const SizedBox(height: 24),
+
               // Mandatory Contributions Section
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,9 +471,9 @@ class _ProfileFormState extends State<ProfileForm> {
                               child: _buildTextField(
                                 controller: _healthController,
                                 label: 'Zdravstveno osiguranje',
-                                isRequired: true,
+                                isRequired: false,
                                 keyboardType: TextInputType.number,
-                                validator: validatePositiveNumber,
+                                validator: null,
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -579,7 +658,7 @@ class _ProfileFormState extends State<ProfileForm> {
           keyboardType: keyboardType,
           validator: validator,
           decoration: InputDecoration(
-            hintText: 'Ime postojećeg klijenta',
+            hintText: '',
             hintStyle: TextStyle(
               color: Colors.grey[400],
               fontSize: 14,

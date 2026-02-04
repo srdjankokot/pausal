@@ -46,17 +46,17 @@ class _OverviewTabState extends State<OverviewTab> {
 
     final totalInvoiced = invoices.fold<double>(
       0,
-      (sum, entry) => sum + entry.amount,
+      (sum, entry) => sum + entry.amountInRSD,
     );
     final totalExpenses = expenses.fold<double>(
       0,
-      (sum, entry) => sum + entry.amount,
+      (sum, entry) => sum + entry.amountInRSD,
     );
 
     final currentYear = DateTime.now().year;
     final totalInvoicedCurrentYear = invoices
         .where((invoice) => invoice.date.year == currentYear)
-        .fold<double>(0, (sum, entry) => sum + entry.amount);
+        .fold<double>(0, (sum, entry) => sum + entry.amountInRSD);
 
     final trackedMonths = _countTrackedMonths(widget.entries);
     final fixedObligations =
@@ -80,7 +80,7 @@ class _OverviewTabState extends State<OverviewTab> {
     // Calculate client shares for selected year
     final totalInvoicedSelectedYear = invoices
         .where((invoice) => invoice.date.year == _selectedRevenueYear)
-        .fold<double>(0, (sum, entry) => sum + entry.amount);
+        .fold<double>(0, (sum, entry) => sum + entry.amountInRSD);
 
     final Map<String, double> clientTotals = {};
     for (final invoice in invoices.where(
@@ -91,8 +91,8 @@ class _OverviewTabState extends State<OverviewTab> {
 
       clientTotals.update(
         clientId,
-        (value) => value + invoice.amount,
-        ifAbsent: () => invoice.amount,
+        (value) => value + invoice.amountInRSD,
+        ifAbsent: () => invoice.amountInRSD,
       );
     }
     final totalForShare = totalInvoicedSelectedYear == 0
@@ -541,6 +541,52 @@ class _OverviewTabState extends State<OverviewTab> {
     );
   }
 
+  Widget _buildTitleWithTooltip(
+    BuildContext context,
+    String title,
+    String tooltipText,
+  ) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ),
+        IconButton(
+          icon: Icon(
+            Icons.info_outline,
+            size: 20,
+            color: Colors.grey[600],
+          ),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text(title),
+                  content: Text(tooltipText),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('U redu'),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+      ],
+    );
+  }
+
   Widget _buildAnnualLimitCard(
     BuildContext context,
     double remainingLimit,
@@ -557,7 +603,7 @@ class _OverviewTabState extends State<OverviewTab> {
         .where((entry) =>
             entry.kind == LedgerKind.invoice &&
             entry.date.isAfter(twelveMonthsAgo))
-        .fold<double>(0, (sum, entry) => sum + entry.amount);
+        .fold<double>(0, (sum, entry) => sum + entry.amountInRSD);
 
     final rollingLimit = widget.profile.rollingLimit;
     final remainingRollingLimit = (rollingLimit - totalInvoicedRolling).clamp(0, double.infinity);
@@ -586,12 +632,13 @@ class _OverviewTabState extends State<OverviewTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              _buildTitleWithTooltip(
+                context,
                 'Poslednji 12 meseci',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                'Ovaj limit prati ukupan prihod u proteklih 12 meseci (365 dana) od danas. '
+                'To znači da se limit dinamički pomera sa svakim danom i uzima u obzir sve fakture '
+                'iz poslednje godine, bez obzira na kalendarske godine. Ovaj limit je bitan za paušalno '
+                'oporezivanje jer određuje da li još uvek možete raditi kao paušalac.',
               ),
               const SizedBox(height: 20),
               Row(
@@ -723,12 +770,12 @@ class _OverviewTabState extends State<OverviewTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              _buildTitleWithTooltip(
+                context,
                 l10n.annualLimit,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                'Ovaj limit prati ukupan prihod unutar kalendarske godine (od 1. januara do 31. decembra). '
+                'Resetuje se na početku svake nove godine. Ovaj limit je takođe važan za paušalno '
+                'oporezivanje i određuje maksimalni prihod koji možete ostvariti u toku jedne kalendarske godine.',
               ),
               const SizedBox(height: 20),
               Row(
@@ -903,6 +950,19 @@ class _OverviewTabState extends State<OverviewTab> {
                     ),
                   ),
                 ),
+
+                        Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Opis',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+
                 Expanded(
                   flex: 2,
                   child: Text(
@@ -917,7 +977,7 @@ class _OverviewTabState extends State<OverviewTab> {
                 Expanded(
                   flex: 3,
                   child: Text(
-                    'Naziv',
+                    'Klijent',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: Colors.grey[700],
@@ -993,6 +1053,19 @@ class _OverviewTabState extends State<OverviewTab> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+
+                       Expanded(
+                          flex: 2,
+                          child: Text(
+                            ledgerEntry.title,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontSize: 13,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+
                         Expanded(
                           flex: 2,
                           child: Text(
@@ -1026,6 +1099,7 @@ class _OverviewTabState extends State<OverviewTab> {
                               numberColor: ledgerEntry.kind == LedgerKind.invoice
                                   ? Colors.green[700]!
                                   : Colors.red[700]!,
+                              currency: ledgerEntry.currency,
                             ),
                           ),
                         ),

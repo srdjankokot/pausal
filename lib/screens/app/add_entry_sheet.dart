@@ -37,6 +37,7 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
   late final TextEditingController _amountController;
   late final TextEditingController _noteController;
   late final TextEditingController _clientSearchController;
+  late final TextEditingController _exchangeRateController;
   late LedgerKind _selectedKind;
   late DateTime _selectedDate;
   String? _selectedClientId;
@@ -44,8 +45,13 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
   double _invoiceTotal = 0;
   late TextEditingController _invoiceNumberController;
   bool _invoiceNumberAutoFilled = false;
+  late String _selectedCurrency;
 
   bool get _isEditing => widget.initialEntry != null;
+  bool get _isForeignClient {
+    final client = _findClientById(_selectedClientId);
+    return client?.isForeign ?? false;
+  }
 
   @override
   void initState() {
@@ -60,6 +66,12 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
     _noteController = TextEditingController(text: initial?.note ?? '');
     _clientSearchController = TextEditingController();
     _selectedClientId = initial?.clientId;
+    _selectedCurrency = initial?.currency ?? 'RSD';
+    _exchangeRateController = TextEditingController(
+      text: initial?.exchangeRate != null && initial!.exchangeRate != 1.0
+          ? initial.exchangeRate.toStringAsFixed(2)
+          : '',
+    );
     _invoiceItems = <InvoiceItemFormData>[];
     if (_selectedKind == LedgerKind.invoice) {
       if (initial?.invoiceNumber?.trim().isNotEmpty == true) {
@@ -113,6 +125,7 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
     _noteController.dispose();
     _clientSearchController.dispose();
     _invoiceNumberController.dispose();
+    _exchangeRateController.dispose();
     for (final item in _invoiceItems) {
       item.dispose();
     }
@@ -378,6 +391,7 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
               onRemove: _invoiceItems.length > 1
                   ? () => _removeInvoiceItem(index)
                   : null,
+              currency: _selectedCurrency,
             ),
           );
         }),
@@ -399,6 +413,7 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
                 currencyFontSize: 10,
                 numberWeight: FontWeight.bold,
                 numberColor: Colors.black87,
+                currency: _selectedCurrency,
               ),
             ],
           ),
@@ -462,6 +477,10 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
       amount = parsed;
     }
 
+    final exchangeRate = _selectedCurrency != 'RSD'
+        ? (double.tryParse(_exchangeRateController.text.replaceAll(',', '.')) ?? 1.0)
+        : 1.0;
+
     final entry = LedgerEntry(
       id:
           widget.initialEntry?.id ??
@@ -478,6 +497,8 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
           ? _invoiceNumberController.text.trim()
           : null,
       items: _selectedKind == LedgerKind.invoice ? invoiceItems : const [],
+      currency: _selectedCurrency,
+      exchangeRate: exchangeRate,
     );
 
     widget.onSubmit(entry);
@@ -607,6 +628,50 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
                     return null;
                   },
                 ),
+                if (_isForeignClient) ...[
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    key: ValueKey(_selectedClientId),
+                    initialValue: _selectedCurrency,
+                    decoration: const InputDecoration(
+                      labelText: 'Valuta',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'RSD', child: Text('RSD')),
+                      DropdownMenuItem(value: 'EUR', child: Text('EUR')),
+                      DropdownMenuItem(value: 'USD', child: Text('USD')),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedCurrency = value ?? 'RSD';
+                        if (_selectedCurrency == 'RSD') {
+                          _exchangeRateController.clear();
+                        }
+                      });
+                    },
+                  ),
+                  if (_selectedCurrency != 'RSD') ...[
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _exchangeRateController,
+                      decoration: InputDecoration(
+                        labelText: 'Kurs (1 $_selectedCurrency = ? RSD)',
+                        hintText: 'npr. 117.50',
+                        border: const OutlineInputBorder(),
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (_selectedCurrency == 'RSD') return null;
+                        final parsed = double.tryParse(value?.replaceAll(',', '.') ?? '');
+                        if (parsed == null || parsed <= 0) {
+                          return 'Unesite validan kurs';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+                ],
               ],
               const SizedBox(height: 16),
               TextFormField(
@@ -635,7 +700,7 @@ class _AddEntrySheetState extends State<AddEntrySheet> {
                 readOnly: _selectedKind == LedgerKind.invoice,
                 decoration: InputDecoration(
                   labelText: 'Ukupan iznos',
-                  suffixText: 'RSD',
+                  suffixText: _selectedKind == LedgerKind.invoice ? _selectedCurrency : 'RSD',
                   border: const OutlineInputBorder(),
                   helperText: _selectedKind == LedgerKind.invoice
                       ? 'Automatski se računa na osnovu stavki'

@@ -8,12 +8,14 @@ class InvoiceItemRow extends StatelessWidget {
     required this.data,
     required this.onChanged,
     this.onRemove,
+    this.currency = 'RSD',
   });
 
   final int index;
   final InvoiceItemFormData data;
   final VoidCallback onChanged;
   final VoidCallback? onRemove;
+  final String currency;
 
   @override
   Widget build(BuildContext context) {
@@ -117,10 +119,10 @@ class InvoiceItemRow extends StatelessWidget {
                 Expanded(
                   child: TextFormField(
                     controller: data.unitPriceController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Cena po jedinici',
-                      suffixText: 'RSD',
-                      border: OutlineInputBorder(),
+                      suffixText: currency,
+                      border: const OutlineInputBorder(),
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -158,6 +160,7 @@ class InvoiceItemRow extends StatelessWidget {
                     currencyFontSize: 9,
                     numberWeight: FontWeight.w600,
                     numberColor: Colors.black87,
+                    currency: currency,
                   ),
                 ],
               ),

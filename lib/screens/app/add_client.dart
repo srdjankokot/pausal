@@ -22,6 +22,7 @@ class _AddClientSheetState extends State<AddClientSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _pibController;
   late final TextEditingController _addressController;
+  late bool _isForeign;
 
   bool get _isEditing => widget.initialClient != null;
 
@@ -37,6 +38,7 @@ class _AddClientSheetState extends State<AddClientSheet> {
     _addressController = TextEditingController(
       text: widget.initialClient?.address ?? '',
     );
+    _isForeign = widget.initialClient?.isForeign ?? false;
   }
 
   @override
@@ -59,6 +61,7 @@ class _AddClientSheetState extends State<AddClientSheet> {
       name: _nameController.text.trim(),
       pib: _pibController.text.trim(),
       address: _addressController.text.trim(),
+      isForeign: _isForeign,
     );
 
     widget.onSubmit(client);
@@ -118,6 +121,18 @@ class _AddClientSheetState extends State<AddClientSheet> {
                   border: OutlineInputBorder(),
                 ),
                 textCapitalization: TextCapitalization.sentences,
+              ),
+              const SizedBox(height: 16),
+              CheckboxListTile(
+                value: _isForeign,
+                onChanged: (value) {
+                  setState(() {
+                    _isForeign = value ?? false;
+                  });
+                },
+                title: const Text('Strani klijent'),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
               ),
               const SizedBox(height: 24),
               Row(

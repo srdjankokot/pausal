@@ -6,6 +6,8 @@ class CompanyProfile {
     required this.pib,
     required this.address,
     required this.accountNumber,
+    this.iban = '',
+    this.swift = '',
   });
 
   final String name;
@@ -14,6 +16,8 @@ class CompanyProfile {
   final String pib;
   final String address;
   final String accountNumber;
+  final String iban;
+  final String swift;
 
   CompanyProfile copyWith({
     String? name,
@@ -22,6 +26,8 @@ class CompanyProfile {
     String? pib,
     String? address,
     String? accountNumber,
+    String? iban,
+    String? swift,
   }) {
     return CompanyProfile(
       name: name ?? this.name,
@@ -30,6 +36,8 @@ class CompanyProfile {
       pib: pib ?? this.pib,
       address: address ?? this.address,
       accountNumber: accountNumber ?? this.accountNumber,
+      iban: iban ?? this.iban,
+      swift: swift ?? this.swift,
     );
   }
 
@@ -41,6 +49,8 @@ class CompanyProfile {
       pib: json['pib'] as String? ?? '',
       address: json['address'] as String? ?? '',
       accountNumber: json['accountNumber'] as String? ?? '',
+      iban: json['iban'] as String? ?? '',
+      swift: json['swift'] as String? ?? '',
     );
   }
 
@@ -52,6 +62,8 @@ class CompanyProfile {
       'pib': pib,
       'address': address,
       'accountNumber': accountNumber,
+      'iban': iban,
+      'swift': swift,
     };
   }
 }

@@ -386,6 +386,19 @@ class _LedgerTabState extends State<LedgerTab>
                         ),
                       ),
                     ),
+               Expanded(
+                      flex: 3,
+                      child: Text(
+                        'Opis',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+
+
                     Expanded(
                       flex: 2,
                       child: Text(
@@ -476,6 +489,18 @@ class _LedgerTabState extends State<LedgerTab>
                 ),
               ),
             ),
+
+           Expanded(
+              flex: 3,
+              child: Text(
+                isInvoice ? (entry.title) : '-',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+
             // Date
             Expanded(
               flex: 2,
@@ -499,6 +524,7 @@ class _LedgerTabState extends State<LedgerTab>
                   currencyFontSize: 9,
                   numberWeight: FontWeight.w600,
                   numberColor: isInvoice ? Colors.green[600]! : Colors.red[600]!,
+                  currency: entry.currency,
                 ),
               ),
             ),

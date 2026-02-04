@@ -16,6 +16,8 @@ class LedgerEntry {
     this.clientId,
     this.invoiceNumber,
     List<InvoiceItem>? items,
+    this.currency = 'RSD',
+    this.exchangeRate = 1.0,
   }) : items = List<InvoiceItem>.unmodifiable(items ?? const []);
 
   final String id;
@@ -27,10 +29,13 @@ class LedgerEntry {
   final String? clientId;
   final String? invoiceNumber;
   final List<InvoiceItem> items;
+  final String currency;
+  final double exchangeRate;
 
   bool get isInvoice => kind == LedgerKind.invoice;
   double get totalFromItems =>
       items.fold<double>(0, (sum, item) => sum + item.total);
+  double get amountInRSD => amount * exchangeRate;
 
   LedgerEntry copyWith({
     LedgerKind? kind,
@@ -43,6 +48,8 @@ class LedgerEntry {
     bool clearClient = false,
     String? invoiceNumber,
     List<InvoiceItem>? items,
+    String? currency,
+    double? exchangeRate,
   }) {
     return LedgerEntry(
       id: id,
@@ -54,6 +61,8 @@ class LedgerEntry {
       clientId: clearClient ? null : (clientId ?? this.clientId),
       invoiceNumber: invoiceNumber ?? this.invoiceNumber,
       items: items ?? this.items,
+      currency: currency ?? this.currency,
+      exchangeRate: exchangeRate ?? this.exchangeRate,
     );
   }
 
@@ -83,6 +92,8 @@ class LedgerEntry {
       clientId: json['clientId'] as String?,
       invoiceNumber: normalizedInvoiceNumber,
       items: parsedItems,
+      currency: json['currency'] as String? ?? 'RSD',
+      exchangeRate: (json['exchangeRate'] as num?)?.toDouble() ?? 1.0,
     );
   }
 
@@ -97,6 +108,8 @@ class LedgerEntry {
       'clientId': clientId,
       'invoiceNumber': invoiceNumber,
       'items': items.map((item) => item.toJson()).toList(),
+      'currency': currency,
+      'exchangeRate': exchangeRate,
     };
   }
 

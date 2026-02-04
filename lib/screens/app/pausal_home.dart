@@ -552,15 +552,37 @@ class _PausalHomeState extends State<PausalHome> {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
 
-    await Share.shareXFiles(
-      [shareFile],
-      subject: entry.title,
-      text: l10n.invoiceShareText(
+    // Generate appropriate share message based on client type
+    final String shareText;
+    if (client.isForeign) {
+      // English message for foreign clients with IBAN/SWIFT
+      final invoiceRef = entry.invoiceNumber?.isNotEmpty == true ? entry.invoiceNumber! : entry.title;
+      final amount = formatCurrency(entry.amount, includeCurrency: false);
+      shareText = '''Invoice $invoiceRef for ${client.name}
+
+Amount: $amount ${entry.currency}
+Payment Terms: 14 days
+
+Payment Instructions:
+IBAN: ${_companyProfile.iban}
+SWIFT/BIC: ${_companyProfile.swift}
+Reference: $invoiceRef
+
+Thank you for your business!''';
+    } else {
+      // Serbian message for domestic clients
+      shareText = l10n.invoiceShareText(
         entry.invoiceNumber?.isNotEmpty == true ? entry.invoiceNumber! : entry.title,
         client.name,
         formatCurrency(entry.amount),
         _companyProfile.accountNumber,
-      ),
+      );
+    }
+
+    await Share.shareXFiles(
+      [shareFile],
+      subject: entry.title,
+      text: shareText,
     );
   }
 
