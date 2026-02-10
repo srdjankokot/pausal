@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:shared_preferences_web/shared_preferences_web.dart';
@@ -7,6 +9,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/foundation.dart';
 
 import 'constants/app_constants.dart';
+import 'firebase_options.dart';
 import 'screens/landing_page.dart';
 import 'screens/app/pausal_home.dart';
 import 'screens/privacy_policy_page.dart';
@@ -14,6 +17,20 @@ import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Enable Analytics debug mode in development
+  if (kDebugMode) {
+    await FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(true);
+    if (kDebugMode) {
+      print('🔥 Firebase Analytics initialized with debug mode');
+    }
+  }
+
   if (kIsWeb) {
     usePathUrlStrategy();
     SharedPreferencesPlugin.registerWith(null);

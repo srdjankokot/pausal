@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -161,6 +162,27 @@ class _PausalHomeState extends State<PausalHome> {
       _entries.sort((a, b) => b.date.compareTo(a.date));
     });
     _pushDataToSheets({SheetSyncTarget.entries});
+
+    // Log analytics event for invoice creation
+    if (entry.kind == LedgerKind.invoice) {
+      _logInvoiceCreated(entry);
+    }
+  }
+
+  Future<void> _logInvoiceCreated(LedgerEntry entry) async {
+    try {
+      await FirebaseAnalytics.instance.logEvent(
+        name: 'invoice_created',
+        parameters: {
+          'user_email': _googleUser?.email ?? 'unknown',
+        },
+      );
+    } catch (e) {
+      // Silently fail if analytics fails
+      if (kDebugMode) {
+        print('Failed to log analytics event: $e');
+      }
+    }
   }
 
   void _updateEntry(LedgerEntry updated) {
