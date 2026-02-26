@@ -111,6 +111,7 @@ class _PausalHomeState extends State<PausalHome> {
     monthlyPension: 0,
     monthlyHealth: 0,
     monthlyTaxPrepayment: 0,
+    monthlyUnemployment: 0,
     annualLimit: 6000000,
     rollingLimit: 8000000,
     additionalTaxRate: 0,

@@ -156,10 +156,15 @@
   "pensionContribution": "Pension contribution",
   "healthInsurance": "Health insurance",
   "taxPrepayment": "Tax prepayment",
+  "unemploymentContribution": "Unemployment contribution",
   "totalMonthly": "Total monthly",
   "recentActivity": "Recent activity",
   "noEntriesYet": "No entries recorded yet.",
   "unknownClient": "Unknown client",
+
+  "dateFrom": "From",
+  "dateTo": "To",
+  "allTime": "All time",
 
   "filters": "Filters",
   "clearFilters": "Clear filters",

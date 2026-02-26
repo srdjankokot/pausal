@@ -305,6 +305,7 @@ class GoogleSheetsService {
         'monthlyPension': parseDouble(tax['monthlyPension']),
         'monthlyHealth': parseDouble(tax['monthlyHealth']),
         'monthlyTaxPrepayment': parseDouble(tax['monthlyTaxPrepayment']),
+        'monthlyUnemployment': parseDouble(tax['monthlyUnemployment']),
         'annualLimit': parseDouble(tax['annualLimit']),
         'rollingLimit': parseDouble(tax['rollingLimit']),
         'additionalTaxRate': parseDouble(tax['additionalTaxRate']),

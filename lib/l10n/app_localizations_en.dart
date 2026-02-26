@@ -457,6 +457,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get taxPrepayment => 'Tax prepayment';
 
   @override
+  String get unemploymentContribution => 'Unemployment contribution';
+
+  @override
   String get totalMonthly => 'Total monthly';
 
   @override
@@ -467,6 +470,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unknownClient => 'Unknown client';
+
+  @override
+  String get dateFrom => 'From';
+
+  @override
+  String get dateTo => 'To';
+
+  @override
+  String get allTime => 'All time';
 
   @override
   String get filters => 'Filters';

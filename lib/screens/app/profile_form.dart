@@ -25,6 +25,7 @@ class _ProfileFormState extends State<ProfileForm> {
   late TextEditingController _pensionController;
   late TextEditingController _healthController;
   late TextEditingController _taxController;
+  late TextEditingController _unemploymentController;
   late TextEditingController _limitController;
   late TextEditingController _rollingLimitController;
   late TextEditingController _rateController;
@@ -42,13 +43,16 @@ class _ProfileFormState extends State<ProfileForm> {
     super.initState();
     _cityController = TextEditingController(text: widget.taxProfile.city);
     _pensionController = TextEditingController(
-      text: widget.taxProfile.monthlyPension.toStringAsFixed(0),
+      text: widget.taxProfile.monthlyPension.toStringAsFixed(2),
     );
     _healthController = TextEditingController(
-      text: widget.taxProfile.monthlyHealth.toStringAsFixed(0),
+      text: widget.taxProfile.monthlyHealth.toStringAsFixed(2),
     );
     _taxController = TextEditingController(
-      text: widget.taxProfile.monthlyTaxPrepayment.toStringAsFixed(0),
+      text: widget.taxProfile.monthlyTaxPrepayment.toStringAsFixed(2),
+    );
+    _unemploymentController = TextEditingController(
+      text: widget.taxProfile.monthlyUnemployment.toStringAsFixed(2),
     );
     _limitController = TextEditingController(
       text: widget.taxProfile.annualLimit.toStringAsFixed(0),
@@ -91,12 +95,14 @@ class _ProfileFormState extends State<ProfileForm> {
     if (widget.taxProfile != oldWidget.taxProfile) {
       _cityController.text = widget.taxProfile.city;
       _pensionController.text = widget.taxProfile.monthlyPension
-          .toStringAsFixed(0);
+          .toStringAsFixed(2);
       _healthController.text = widget.taxProfile.monthlyHealth.toStringAsFixed(
-        0,
+        2,
       );
       _taxController.text = widget.taxProfile.monthlyTaxPrepayment
-          .toStringAsFixed(0);
+          .toStringAsFixed(2);
+      _unemploymentController.text = widget.taxProfile.monthlyUnemployment
+          .toStringAsFixed(2);
       _limitController.text = widget.taxProfile.annualLimit.toStringAsFixed(0);
       _rollingLimitController.text = widget.taxProfile.rollingLimit
           .toStringAsFixed(0);
@@ -122,6 +128,7 @@ class _ProfileFormState extends State<ProfileForm> {
     _pensionController.dispose();
     _healthController.dispose();
     _taxController.dispose();
+    _unemploymentController.dispose();
     _limitController.dispose();
     _rollingLimitController.dispose();
     _rateController.dispose();
@@ -150,6 +157,7 @@ class _ProfileFormState extends State<ProfileForm> {
       monthlyPension: parseAmount(_pensionController.text),
       monthlyHealth: parseAmount(_healthController.text),
       monthlyTaxPrepayment: parseAmount(_taxController.text),
+      monthlyUnemployment: parseAmount(_unemploymentController.text),
       annualLimit: parseAmount(_limitController.text),
       rollingLimit: parseAmount(_rollingLimitController.text),
       additionalTaxRate: parseAmount(_rateController.text) / 100,
@@ -454,37 +462,56 @@ class _ProfileFormState extends State<ProfileForm> {
                       final isWide = constraints.maxWidth > 900;
 
                       if (isWide) {
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        return Column(
                           children: [
-                            Expanded(
-                              child: _buildTextField(
-                                controller: _pensionController,
-                                label: 'PIO doprinos (mesečno)',
-                                isRequired: true,
-                                keyboardType: TextInputType.number,
-                                validator: validatePositiveNumber,
-                              ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: _buildTextField(
+                                    controller: _pensionController,
+                                    label: 'PIO doprinos (mesečno)',
+                                    isRequired: true,
+                                    keyboardType: TextInputType.number,
+                                    validator: validatePositiveNumber,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildTextField(
+                                    controller: _healthController,
+                                    label: 'Zdravstveno osiguranje',
+                                    isRequired: false,
+                                    keyboardType: TextInputType.number,
+                                    validator: null,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildTextField(
-                                controller: _healthController,
-                                label: 'Zdravstveno osiguranje',
-                                isRequired: false,
-                                keyboardType: TextInputType.number,
-                                validator: null,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildTextField(
-                                controller: _taxController,
-                                label: 'Akontacija poreza (mesečno)',
-                                isRequired: true,
-                                keyboardType: TextInputType.number,
-                                validator: validatePositiveNumber,
-                              ),
+                            const SizedBox(height: 20),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: _buildTextField(
+                                    controller: _taxController,
+                                    label: 'Akontacija poreza (mesečno)',
+                                    isRequired: true,
+                                    keyboardType: TextInputType.number,
+                                    validator: validatePositiveNumber,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildTextField(
+                                    controller: _unemploymentController,
+                                    label: 'Doprinos za nezaposlenost (mesečno)',
+                                    isRequired: false,
+                                    keyboardType: TextInputType.number,
+                                    validator: null,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         );
@@ -513,6 +540,14 @@ class _ProfileFormState extends State<ProfileForm> {
                               isRequired: true,
                               keyboardType: TextInputType.number,
                               validator: validatePositiveNumber,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildTextField(
+                              controller: _unemploymentController,
+                              label: 'Doprinos za nezaposlenost (mesečno)',
+                              isRequired: false,
+                              keyboardType: TextInputType.number,
+                              validator: null,
                             ),
                           ],
                         );

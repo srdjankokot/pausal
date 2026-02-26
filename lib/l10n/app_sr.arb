@@ -204,10 +204,15 @@
   "pensionContribution": "PIO doprinos",
   "healthInsurance": "Zdravstveno osiguranje",
   "taxPrepayment": "Akontacija poreza",
+  "unemploymentContribution": "Doprinos za nezaposlenost",
   "totalMonthly": "Ukupno mesečno",
   "recentActivity": "Poslednje aktivnosti",
   "noEntriesYet": "Još uvek nema zabeleženih stavki.",
   "unknownClient": "Nepoznat klijent",
+
+  "dateFrom": "Od",
+  "dateTo": "Do",
+  "allTime": "Sve vreme",
 
   "filters": "Filteri",
   "clearFilters": "Obriši filtere",

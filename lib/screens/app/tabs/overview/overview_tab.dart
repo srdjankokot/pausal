@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:pausal_calculator/screens/app/client.dart';
 import 'package:pausal_calculator/screens/app/client_share.dart';
 import 'package:pausal_calculator/screens/app/lendger_entry.dart';
@@ -25,7 +26,8 @@ class OverviewTab extends StatefulWidget {
 }
 
 class _OverviewTabState extends State<OverviewTab> {
-  String _selectedPeriod = 'Do 6M';
+  DateTime? _dateFrom;
+  DateTime? _dateTo;
   late int _selectedRevenueYear;
 
   @override
@@ -34,13 +36,50 @@ class _OverviewTabState extends State<OverviewTab> {
     _selectedRevenueYear = DateTime.now().year;
   }
 
+  List<LedgerEntry> _filterEntriesByDateRange(List<LedgerEntry> entries) {
+    return entries.where((entry) {
+      if (_dateFrom != null && entry.date.isBefore(_dateFrom!)) return false;
+      if (_dateTo != null && entry.date.isAfter(DateTime(_dateTo!.year, _dateTo!.month, _dateTo!.day, 23, 59, 59))) return false;
+      return true;
+    }).toList();
+  }
+
+  Future<void> _pickDateRange(BuildContext context) async {
+    final now = DateTime.now();
+    final l10n = AppLocalizations.of(context)!;
+    final from = await showDatePicker(
+      context: context,
+      initialDate: _dateFrom ?? now,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(now.year + 1, 12, 31),
+      helpText: l10n.dateFrom,
+    );
+    if (from == null || !context.mounted) return;
+    final to = await showDatePicker(
+      context: context,
+      initialDate: _dateTo ?? from,
+      firstDate: from,
+      lastDate: DateTime(now.year + 1, 12, 31),
+      helpText: l10n.dateTo,
+    );
+    if (to == null) return;
+    setState(() {
+      _dateFrom = from;
+      _dateTo = to;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final invoices = widget.entries
+    final dateFormat = DateFormat('dd.MM.yyyy.');
+    final filteredEntries = _filterEntriesByDateRange(widget.entries);
+    final hasFilter = _dateFrom != null || _dateTo != null;
+
+    final invoices = filteredEntries
         .where((entry) => entry.kind == LedgerKind.invoice)
         .toList();
-    final expenses = widget.entries
+    final expenses = filteredEntries
         .where((entry) => entry.kind == LedgerKind.expense)
         .toList();
 
@@ -54,21 +93,18 @@ class _OverviewTabState extends State<OverviewTab> {
     );
 
     final currentYear = DateTime.now().year;
-    final totalInvoicedCurrentYear = invoices
+    final totalInvoicedCurrentYear = widget.entries
+        .where((entry) => entry.kind == LedgerKind.invoice)
         .where((invoice) => invoice.date.year == currentYear)
         .fold<double>(0, (sum, entry) => sum + entry.amountInRSD);
 
-    final trackedMonths = _countTrackedMonths(widget.entries);
+    final trackedMonths = _countTrackedMonths(filteredEntries);
     final fixedObligations =
         widget.profile.monthlyFixedContributions *
         (trackedMonths == 0 ? 1 : trackedMonths);
 
-    final taxableBase = (totalInvoiced - totalExpenses).clamp(
-      0,
-      double.infinity,
-    );
-    final additionalTax = taxableBase * widget.profile.additionalTaxRate;
-    final totalObligations = fixedObligations + additionalTax;
+    // final additionalTax = taxableBase * widget.profile.additionalTaxRate;
+    final totalObligations = fixedObligations;
     final netIncome = totalInvoiced - totalExpenses - totalObligations;
 
     final remainingLimit = (widget.profile.annualLimit - totalInvoicedCurrentYear)
@@ -133,7 +169,9 @@ class _OverviewTabState extends State<OverviewTab> {
               context,
             ).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
+          _buildDateFilterRow(context, l10n, dateFormat, hasFilter),
+          const SizedBox(height: 16),
           LayoutBuilder(
             builder: (context, constraints) {
               final isWideScreen = constraints.maxWidth > 900;
@@ -314,6 +352,55 @@ class _OverviewTabState extends State<OverviewTab> {
               includeDecimals: false,
             ),
             const SizedBox(height: 4),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateFilterRow(
+    BuildContext context,
+    AppLocalizations l10n,
+    DateFormat dateFormat,
+    bool hasFilter,
+  ) {
+    final label = hasFilter
+        ? '${dateFormat.format(_dateFrom!)} – ${dateFormat.format(_dateTo!)}'
+        : l10n.selectPeriod;
+
+    return InkWell(
+      onTap: () => _pickDateRange(context),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.date_range, size: 18, color: Colors.grey[600]),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: hasFilter ? Colors.black : Colors.grey[500],
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            if (hasFilter)
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _dateFrom = null;
+                    _dateTo = null;
+                  });
+                },
+                child: Icon(Icons.close, size: 18, color: Colors.grey[500]),
+              ),
           ],
         ),
       ),
@@ -1161,6 +1248,13 @@ class _OverviewTabState extends State<OverviewTab> {
           ContributionRow(
             label: l10n.taxPrepayment,
             value: widget.profile.monthlyTaxPrepayment,
+          ),
+          const SizedBox(height: 12),
+          Divider(height: 1, color: Colors.grey[200]),
+          const SizedBox(height: 12),
+          ContributionRow(
+            label: l10n.unemploymentContribution,
+            value: widget.profile.monthlyUnemployment,
           ),
           const SizedBox(height: 12),
           Divider(height: 1, color: Colors.grey[200]),

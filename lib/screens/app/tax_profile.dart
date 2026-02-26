@@ -5,6 +5,7 @@ class TaxProfile {
     required this.monthlyPension,
     required this.monthlyHealth,
     required this.monthlyTaxPrepayment,
+    required this.monthlyUnemployment,
     required this.annualLimit,
     required this.rollingLimit,
     required this.additionalTaxRate,
@@ -14,18 +15,20 @@ class TaxProfile {
   final double monthlyPension;
   final double monthlyHealth;
   final double monthlyTaxPrepayment;
+  final double monthlyUnemployment;
   final double annualLimit;
   final double rollingLimit;
   final double additionalTaxRate;
 
   double get monthlyFixedContributions =>
-      monthlyPension + monthlyHealth + monthlyTaxPrepayment;
+      monthlyPension + monthlyHealth + monthlyTaxPrepayment + monthlyUnemployment;
 
   TaxProfile copyWith({
     String? city,
     double? monthlyPension,
     double? monthlyHealth,
     double? monthlyTaxPrepayment,
+    double? monthlyUnemployment,
     double? annualLimit,
     double? rollingLimit,
     double? additionalTaxRate,
@@ -35,6 +38,7 @@ class TaxProfile {
       monthlyPension: monthlyPension ?? this.monthlyPension,
       monthlyHealth: monthlyHealth ?? this.monthlyHealth,
       monthlyTaxPrepayment: monthlyTaxPrepayment ?? this.monthlyTaxPrepayment,
+      monthlyUnemployment: monthlyUnemployment ?? this.monthlyUnemployment,
       annualLimit: annualLimit ?? this.annualLimit,
       rollingLimit: rollingLimit ?? this.rollingLimit,
       additionalTaxRate: additionalTaxRate ?? this.additionalTaxRate,
@@ -48,6 +52,8 @@ class TaxProfile {
       monthlyHealth: (json['monthlyHealth'] as num?)?.toDouble() ?? 0,
       monthlyTaxPrepayment:
           (json['monthlyTaxPrepayment'] as num?)?.toDouble() ?? 0,
+      monthlyUnemployment:
+          (json['monthlyUnemployment'] as num?)?.toDouble() ?? 0,
       annualLimit: (json['annualLimit'] as num?)?.toDouble() ?? 0,
       rollingLimit: (json['rollingLimit'] as num?)?.toDouble() ?? 0,
       additionalTaxRate: (json['additionalTaxRate'] as num?)?.toDouble() ?? 0,
@@ -60,6 +66,7 @@ class TaxProfile {
       'monthlyPension': monthlyPension,
       'monthlyHealth': monthlyHealth,
       'monthlyTaxPrepayment': monthlyTaxPrepayment,
+      'monthlyUnemployment': monthlyUnemployment,
       'annualLimit': annualLimit,
       'rollingLimit': rollingLimit,
       'additionalTaxRate': additionalTaxRate,

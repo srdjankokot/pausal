@@ -460,6 +460,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get taxPrepayment => 'Akontacija poreza';
 
   @override
+  String get unemploymentContribution => 'Doprinos za nezaposlenost';
+
+  @override
   String get totalMonthly => 'Ukupno mesečno';
 
   @override
@@ -470,6 +473,15 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get unknownClient => 'Nepoznat klijent';
+
+  @override
+  String get dateFrom => 'Od';
+
+  @override
+  String get dateTo => 'Do';
+
+  @override
+  String get allTime => 'Sve vreme';
 
   @override
   String get filters => 'Filteri';

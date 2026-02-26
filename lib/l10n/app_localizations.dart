@@ -908,6 +908,12 @@ abstract class AppLocalizations {
   /// **'Akontacija poreza'**
   String get taxPrepayment;
 
+  /// No description provided for @unemploymentContribution.
+  ///
+  /// In sr, this message translates to:
+  /// **'Doprinos za nezaposlenost'**
+  String get unemploymentContribution;
+
   /// No description provided for @totalMonthly.
   ///
   /// In sr, this message translates to:
@@ -931,6 +937,24 @@ abstract class AppLocalizations {
   /// In sr, this message translates to:
   /// **'Nepoznat klijent'**
   String get unknownClient;
+
+  /// No description provided for @dateFrom.
+  ///
+  /// In sr, this message translates to:
+  /// **'Od'**
+  String get dateFrom;
+
+  /// No description provided for @dateTo.
+  ///
+  /// In sr, this message translates to:
+  /// **'Do'**
+  String get dateTo;
+
+  /// No description provided for @allTime.
+  ///
+  /// In sr, this message translates to:
+  /// **'Sve vreme'**
+  String get allTime;
 
   /// No description provided for @filters.
   ///
