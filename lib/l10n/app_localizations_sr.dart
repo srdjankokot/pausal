@@ -775,4 +775,15 @@ class AppLocalizationsSr extends AppLocalizations {
   String connectedAsEmail(String email) {
     return 'Povezano kao $email';
   }
+
+  @override
+  String get addYear => 'Dodaj godinu';
+
+  @override
+  String get removeYear => 'Ukloni godinu';
+
+  @override
+  String ratesForYear(String year) {
+    return 'Doprinosi za $year. godinu';
+  }
 }

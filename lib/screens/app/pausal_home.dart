@@ -20,6 +20,7 @@ import 'package:pausal_calculator/screens/app/tabs/ledger/ledger_tab.dart';
 import 'package:pausal_calculator/screens/app/tabs/overview/overview_tab.dart';
 import 'package:pausal_calculator/screens/app/tabs/seetings/settings_tab.dart';
 import 'package:pausal_calculator/screens/app/tax_profile.dart';
+import 'package:pausal_calculator/screens/app/yearly_tax_rates.dart';
 import 'package:pausal_calculator/screens/spreadsheet_config.dart';
 import 'package:pausal_calculator/utils.dart';
 import 'package:pdf/pdf.dart';
@@ -305,6 +306,9 @@ class _PausalHomeState extends State<PausalHome> {
           taxProfile: targetsToUpload.contains(SheetSyncTarget.profile)
               ? _profile.toJson()
               : null,
+          yearlyRates: targetsToUpload.contains(SheetSyncTarget.profile)
+              ? _profile.yearlyRatesToJson()
+              : null,
         );
       } catch (error, stack) {
         debugPrint('Google Sheets sync failed: $error');
@@ -453,7 +457,10 @@ class _PausalHomeState extends State<PausalHome> {
         }
         final taxData = remoteProfiles['tax'];
         if (taxData != null && taxData.isNotEmpty) {
-          _profile = TaxProfile.fromJson(Map<String, dynamic>.from(taxData));
+          _profile = TaxProfile.fromJson(
+            Map<String, dynamic>.from(taxData),
+            yearlyRates: _parseYearlyRates(remoteProfiles['yearlyRates']),
+          );
         }
       });
     } catch (error, stack) {
@@ -479,6 +486,20 @@ class _PausalHomeState extends State<PausalHome> {
       }
       _resetStructureProgress();
     }
+  }
+
+  Map<int, YearlyTaxRates>? _parseYearlyRates(Map<String, dynamic>? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    final result = <int, YearlyTaxRates>{};
+    for (final entry in raw.entries) {
+      final year = int.tryParse(entry.key);
+      if (year != null && entry.value is Map) {
+        result[year] = YearlyTaxRates.fromJson(
+          Map<String, dynamic>.from(entry.value as Map),
+        );
+      }
+    }
+    return result.isEmpty ? null : result;
   }
 
   Client? _findClient(String? id) {
@@ -741,7 +762,10 @@ Thank you for your business!''';
         }
         final taxData = remoteProfiles['tax'];
         if (taxData != null && taxData.isNotEmpty) {
-          _profile = TaxProfile.fromJson(Map<String, dynamic>.from(taxData));
+          _profile = TaxProfile.fromJson(
+            Map<String, dynamic>.from(taxData),
+            yearlyRates: _parseYearlyRates(remoteProfiles['yearlyRates']),
+          );
         }
       });
       await SyncMetadataStorage.save(

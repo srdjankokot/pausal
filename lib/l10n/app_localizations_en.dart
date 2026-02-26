@@ -772,4 +772,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String connectedAsEmail(String email) {
     return 'Connected as $email';
   }
+
+  @override
+  String get addYear => 'Add year';
+
+  @override
+  String get removeYear => 'Remove year';
+
+  @override
+  String ratesForYear(String year) {
+    return 'Contributions for $year';
+  }
 }

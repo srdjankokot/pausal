@@ -1492,6 +1492,24 @@ abstract class AppLocalizations {
   /// In sr, this message translates to:
   /// **'Povezano kao {email}'**
   String connectedAsEmail(String email);
+
+  /// No description provided for @addYear.
+  ///
+  /// In sr, this message translates to:
+  /// **'Dodaj godinu'**
+  String get addYear;
+
+  /// No description provided for @removeYear.
+  ///
+  /// In sr, this message translates to:
+  /// **'Ukloni godinu'**
+  String get removeYear;
+
+  /// No description provided for @ratesForYear.
+  ///
+  /// In sr, this message translates to:
+  /// **'Doprinosi za {year}. godinu'**
+  String ratesForYear(String year);
 }
 
 class _AppLocalizationsDelegate

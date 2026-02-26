@@ -84,6 +84,7 @@ class GoogleSheetsService {
     List<Map<String, dynamic>>? clients,
     Map<String, dynamic>? companyProfile,
     Map<String, dynamic>? taxProfile,
+    Map<int, Map<String, dynamic>>? yearlyRates,
   }) async {
     final shouldSyncEntries = entries != null;
     final shouldSyncClients = clients != null;
@@ -143,6 +144,15 @@ class GoogleSheetsService {
       tax.forEach((key, value) {
         profileValues.add(['tax', key, value ?? '']);
       });
+      if (yearlyRates != null) {
+        yearlyRates.forEach((year, fields) {
+          fields.forEach((key, value) {
+            if (key != 'year') {
+              profileValues.add(['tax_$year', key, value ?? '']);
+            }
+          });
+        });
+      }
 
       await _clearSheet(profileSheet);
       await _writeRange(profileSheet, profileValues);
@@ -295,11 +305,11 @@ class GoogleSheetsService {
       };
     }
 
+    double parseDouble(String? value) =>
+        double.tryParse(value?.replaceAll(',', '.') ?? '') ?? 0;
+
     final tax = sections['tax'];
     if (tax != null && tax.isNotEmpty) {
-      double parseDouble(String? value) =>
-          double.tryParse(value?.replaceAll(',', '.') ?? '') ?? 0;
-
       result['tax'] = {
         'city': tax['city'] ?? '',
         'monthlyPension': parseDouble(tax['monthlyPension']),
@@ -310,6 +320,27 @@ class GoogleSheetsService {
         'rollingLimit': parseDouble(tax['rollingLimit']),
         'additionalTaxRate': parseDouble(tax['additionalTaxRate']),
       };
+    }
+
+    final yearlyRatesPattern = RegExp(r'^tax_(\d{4})$');
+    final yearlyRates = <int, Map<String, dynamic>>{};
+    for (final entry in sections.entries) {
+      final match = yearlyRatesPattern.firstMatch(entry.key);
+      if (match != null) {
+        final year = int.parse(match.group(1)!);
+        yearlyRates[year] = {
+          'year': year,
+          'monthlyPension': parseDouble(entry.value['monthlyPension']),
+          'monthlyHealth': parseDouble(entry.value['monthlyHealth']),
+          'monthlyTaxPrepayment': parseDouble(entry.value['monthlyTaxPrepayment']),
+          'monthlyUnemployment': parseDouble(entry.value['monthlyUnemployment']),
+        };
+      }
+    }
+    if (yearlyRates.isNotEmpty) {
+      result['yearlyRates'] = yearlyRates.map(
+        (year, data) => MapEntry(year.toString(), data),
+      );
     }
 
     return result;

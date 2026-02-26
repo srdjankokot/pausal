@@ -262,5 +262,16 @@
   "enterNumberGreaterOrEqualZero": "Enter number greater than or equal to zero",
 
   "sheetInfo": "Sheets: {expensesSheet} (expenses), {clientsSheet} (clients), {profileSheet} (profile)",
-  "connectedAsEmail": "Connected as {email}"
+  "connectedAsEmail": "Connected as {email}",
+
+  "addYear": "Add year",
+  "removeYear": "Remove year",
+  "ratesForYear": "Contributions for {year}",
+  "@ratesForYear": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
+  }
 }

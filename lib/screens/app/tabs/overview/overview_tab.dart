@@ -29,11 +29,13 @@ class _OverviewTabState extends State<OverviewTab> {
   DateTime? _dateFrom;
   DateTime? _dateTo;
   late int _selectedRevenueYear;
+  late int _selectedObligationsYear;
 
   @override
   void initState() {
     super.initState();
     _selectedRevenueYear = DateTime.now().year;
+    _selectedObligationsYear = DateTime.now().year;
   }
 
   List<LedgerEntry> _filterEntriesByDateRange(List<LedgerEntry> entries) {
@@ -42,6 +44,22 @@ class _OverviewTabState extends State<OverviewTab> {
       if (_dateTo != null && entry.date.isAfter(DateTime(_dateTo!.year, _dateTo!.month, _dateTo!.day, 23, 59, 59))) return false;
       return true;
     }).toList();
+  }
+
+  double _calculatePerYearObligations(List<LedgerEntry> entries) {
+    final monthsByYear = <int, Set<int>>{};
+    for (final entry in entries) {
+      monthsByYear.putIfAbsent(entry.date.year, () => {}).add(entry.date.month);
+    }
+    if (monthsByYear.isEmpty) {
+      return widget.profile.ratesForYear(DateTime.now().year).monthlyTotal;
+    }
+    double total = 0;
+    for (final entry in monthsByYear.entries) {
+      final rates = widget.profile.ratesForYear(entry.key);
+      total += rates.monthlyTotal * entry.value.length;
+    }
+    return total;
   }
 
   Future<void> _pickDateRange(BuildContext context) async {
@@ -98,10 +116,7 @@ class _OverviewTabState extends State<OverviewTab> {
         .where((invoice) => invoice.date.year == currentYear)
         .fold<double>(0, (sum, entry) => sum + entry.amountInRSD);
 
-    final trackedMonths = _countTrackedMonths(filteredEntries);
-    final fixedObligations =
-        widget.profile.monthlyFixedContributions *
-        (trackedMonths == 0 ? 1 : trackedMonths);
+    final fixedObligations = _calculatePerYearObligations(filteredEntries);
 
     // final additionalTax = taxableBase * widget.profile.additionalTaxRate;
     final totalObligations = fixedObligations;
@@ -1208,6 +1223,8 @@ class _OverviewTabState extends State<OverviewTab> {
     BuildContext context,
     AppLocalizations l10n,
   ) {
+    final rates = widget.profile.ratesForYear(_selectedObligationsYear);
+    final availableYears = widget.profile.yearlyRates.keys.toList()..sort();
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1224,44 +1241,73 @@ class _OverviewTabState extends State<OverviewTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.monthlyObligations,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.monthlyObligations,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (availableYears.length > 1)
+
+                    Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child:
+
+
+                DropdownButton<int>(
+                  value: _selectedObligationsYear,
+                  underline: const SizedBox.shrink(),
+                  isDense: true,
+                  items: availableYears
+                      .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
+                      .toList(),
+                  onChanged: (year) {
+                    if (year != null) setState(() => _selectedObligationsYear = year);
+                  },
+                ),
+                    )
+            ],
           ),
           const SizedBox(height: 16),
           ContributionRow(
             label: l10n.pensionContribution,
-            value: widget.profile.monthlyPension,
+            value: rates.monthlyPension,
           ),
           const SizedBox(height: 12),
           Divider(height: 1, color: Colors.grey[200]),
           const SizedBox(height: 12),
           ContributionRow(
             label: l10n.healthInsurance,
-            value: widget.profile.monthlyHealth,
+            value: rates.monthlyHealth,
           ),
           const SizedBox(height: 12),
           Divider(height: 1, color: Colors.grey[200]),
           const SizedBox(height: 12),
           ContributionRow(
             label: l10n.taxPrepayment,
-            value: widget.profile.monthlyTaxPrepayment,
+            value: rates.monthlyTaxPrepayment,
           ),
           const SizedBox(height: 12),
           Divider(height: 1, color: Colors.grey[200]),
           const SizedBox(height: 12),
           ContributionRow(
             label: l10n.unemploymentContribution,
-            value: widget.profile.monthlyUnemployment,
+            value: rates.monthlyUnemployment,
           ),
           const SizedBox(height: 12),
           Divider(height: 1, color: Colors.grey[200]),
           const SizedBox(height: 12),
           ContributionRow(
             label: l10n.totalMonthly,
-            value: widget.profile.monthlyFixedContributions,
+            value: rates.monthlyTotal,
             emphasize: true,
           ),
         ],
@@ -1270,9 +1316,3 @@ class _OverviewTabState extends State<OverviewTab> {
   }
 }
 
-int _countTrackedMonths(List<LedgerEntry> entries) {
-  final months = entries
-      .map((entry) => DateTime(entry.date.year, entry.date.month))
-      .toSet();
-  return months.length;
-}

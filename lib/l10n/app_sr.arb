@@ -387,5 +387,16 @@
         "type": "String"
       }
     }
+  },
+
+  "addYear": "Dodaj godinu",
+  "removeYear": "Ukloni godinu",
+  "ratesForYear": "Doprinosi za {year}. godinu",
+  "@ratesForYear": {
+    "placeholders": {
+      "year": {
+        "type": "String"
+      }
+    }
   }
 }

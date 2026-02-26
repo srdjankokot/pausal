@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:pausal_calculator/screens/app/company_profile.dart';
 import 'package:pausal_calculator/screens/app/tax_profile.dart';
+import 'package:pausal_calculator/screens/app/yearly_tax_rates.dart';
 import 'package:pausal_calculator/utils.dart';
+import 'package:pausal_calculator/l10n/app_localizations.dart';
 
 class ProfileForm extends StatefulWidget {
   const ProfileForm({
@@ -38,21 +40,37 @@ class _ProfileFormState extends State<ProfileForm> {
   late TextEditingController _companyIbanController;
   late TextEditingController _companySwiftController;
 
+  late int _selectedYear;
+  late Map<int, YearlyTaxRates> _yearlyRates;
+
   @override
   void initState() {
     super.initState();
+    _yearlyRates = Map<int, YearlyTaxRates>.from(widget.taxProfile.yearlyRates);
+    if (_yearlyRates.isEmpty) {
+      final currentYear = DateTime.now().year;
+      _yearlyRates[currentYear] = YearlyTaxRates(
+        year: currentYear,
+        monthlyPension: widget.taxProfile.monthlyPension,
+        monthlyHealth: widget.taxProfile.monthlyHealth,
+        monthlyTaxPrepayment: widget.taxProfile.monthlyTaxPrepayment,
+        monthlyUnemployment: widget.taxProfile.monthlyUnemployment,
+      );
+    }
+    _selectedYear = _yearlyRates.keys.reduce((a, b) => a > b ? a : b);
+    final rates = _yearlyRates[_selectedYear]!;
     _cityController = TextEditingController(text: widget.taxProfile.city);
     _pensionController = TextEditingController(
-      text: widget.taxProfile.monthlyPension.toStringAsFixed(2),
+      text: rates.monthlyPension.toStringAsFixed(2),
     );
     _healthController = TextEditingController(
-      text: widget.taxProfile.monthlyHealth.toStringAsFixed(2),
+      text: rates.monthlyHealth.toStringAsFixed(2),
     );
     _taxController = TextEditingController(
-      text: widget.taxProfile.monthlyTaxPrepayment.toStringAsFixed(2),
+      text: rates.monthlyTaxPrepayment.toStringAsFixed(2),
     );
     _unemploymentController = TextEditingController(
-      text: widget.taxProfile.monthlyUnemployment.toStringAsFixed(2),
+      text: rates.monthlyUnemployment.toStringAsFixed(2),
     );
     _limitController = TextEditingController(
       text: widget.taxProfile.annualLimit.toStringAsFixed(0),
@@ -89,25 +107,99 @@ class _ProfileFormState extends State<ProfileForm> {
     );
   }
 
+  void _saveCurrentYearRates() {
+    double parseAmount(String input) {
+      return double.tryParse(input.trim().replaceAll(',', '.')) ?? 0;
+    }
+    _yearlyRates[_selectedYear] = YearlyTaxRates(
+      year: _selectedYear,
+      monthlyPension: parseAmount(_pensionController.text),
+      monthlyHealth: parseAmount(_healthController.text),
+      monthlyTaxPrepayment: parseAmount(_taxController.text),
+      monthlyUnemployment: parseAmount(_unemploymentController.text),
+    );
+  }
+
+  void _switchYear(int year) {
+    if (year == _selectedYear) return;
+    _saveCurrentYearRates();
+    final rates = _yearlyRates[year]!;
+    setState(() {
+      _selectedYear = year;
+      _pensionController.text = rates.monthlyPension.toStringAsFixed(2);
+      _healthController.text = rates.monthlyHealth.toStringAsFixed(2);
+      _taxController.text = rates.monthlyTaxPrepayment.toStringAsFixed(2);
+      _unemploymentController.text = rates.monthlyUnemployment.toStringAsFixed(2);
+    });
+  }
+
+  void _addYear() {
+    _saveCurrentYearRates();
+    final existingYears = _yearlyRates.keys.toSet();
+    final currentYear = DateTime.now().year;
+    final available = <int>[];
+    for (int y = currentYear - 5; y <= currentYear + 2; y++) {
+      if (!existingYears.contains(y)) available.add(y);
+    }
+    if (available.isEmpty) return;
+
+    showDialog<int>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(AppLocalizations.of(context)!.addYear),
+        children: available.map((y) {
+          return SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, y),
+            child: Text('$y', style: const TextStyle(fontSize: 16)),
+          );
+        }).toList(),
+      ),
+    ).then((picked) {
+      if (picked == null) return;
+      final closestYear = existingYears.reduce(
+        (a, b) => (a - picked).abs() <= (b - picked).abs() ? a : b,
+      );
+      final templateRates = _yearlyRates[closestYear]!;
+      setState(() {
+        _yearlyRates[picked] = templateRates.copyWith(year: picked);
+        _switchYear(picked);
+      });
+    });
+  }
+
+  void _removeYear(int year) {
+    if (_yearlyRates.length <= 1) return;
+    setState(() {
+      _yearlyRates.remove(year);
+      if (_selectedYear == year) {
+        _selectedYear = _yearlyRates.keys.reduce((a, b) => a > b ? a : b);
+        final rates = _yearlyRates[_selectedYear]!;
+        _pensionController.text = rates.monthlyPension.toStringAsFixed(2);
+        _healthController.text = rates.monthlyHealth.toStringAsFixed(2);
+        _taxController.text = rates.monthlyTaxPrepayment.toStringAsFixed(2);
+        _unemploymentController.text = rates.monthlyUnemployment.toStringAsFixed(2);
+      }
+    });
+  }
+
   @override
   void didUpdateWidget(covariant ProfileForm oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.taxProfile != oldWidget.taxProfile) {
       _cityController.text = widget.taxProfile.city;
-      _pensionController.text = widget.taxProfile.monthlyPension
-          .toStringAsFixed(2);
-      _healthController.text = widget.taxProfile.monthlyHealth.toStringAsFixed(
-        2,
-      );
-      _taxController.text = widget.taxProfile.monthlyTaxPrepayment
-          .toStringAsFixed(2);
-      _unemploymentController.text = widget.taxProfile.monthlyUnemployment
-          .toStringAsFixed(2);
       _limitController.text = widget.taxProfile.annualLimit.toStringAsFixed(0);
       _rollingLimitController.text = widget.taxProfile.rollingLimit
           .toStringAsFixed(0);
       _rateController.text = (widget.taxProfile.additionalTaxRate * 100)
           .toStringAsFixed(1);
+      _yearlyRates = Map<int, YearlyTaxRates>.from(widget.taxProfile.yearlyRates);
+      if (_yearlyRates.containsKey(_selectedYear)) {
+        final rates = _yearlyRates[_selectedYear]!;
+        _pensionController.text = rates.monthlyPension.toStringAsFixed(2);
+        _healthController.text = rates.monthlyHealth.toStringAsFixed(2);
+        _taxController.text = rates.monthlyTaxPrepayment.toStringAsFixed(2);
+        _unemploymentController.text = rates.monthlyUnemployment.toStringAsFixed(2);
+      }
     }
     if (widget.companyProfile != oldWidget.companyProfile) {
       _companyNameController.text = widget.companyProfile.name;
@@ -152,15 +244,19 @@ class _ProfileFormState extends State<ProfileForm> {
       return double.parse(input.trim().replaceAll(',', '.'));
     }
 
+    _saveCurrentYearRates();
+
+    final currentYearRates = _yearlyRates[_selectedYear]!;
     final updatedProfile = widget.taxProfile.copyWith(
       city: _cityController.text.trim(),
-      monthlyPension: parseAmount(_pensionController.text),
-      monthlyHealth: parseAmount(_healthController.text),
-      monthlyTaxPrepayment: parseAmount(_taxController.text),
-      monthlyUnemployment: parseAmount(_unemploymentController.text),
+      monthlyPension: currentYearRates.monthlyPension,
+      monthlyHealth: currentYearRates.monthlyHealth,
+      monthlyTaxPrepayment: currentYearRates.monthlyTaxPrepayment,
+      monthlyUnemployment: currentYearRates.monthlyUnemployment,
       annualLimit: parseAmount(_limitController.text),
       rollingLimit: parseAmount(_rollingLimitController.text),
       additionalTaxRate: parseAmount(_rateController.text) / 100,
+      yearlyRates: Map<int, YearlyTaxRates>.from(_yearlyRates),
     );
 
     final updatedCompany = widget.companyProfile.copyWith(
@@ -456,6 +552,8 @@ class _ProfileFormState extends State<ProfileForm> {
                       letterSpacing: 0.5,
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  _buildYearSelector(context),
                   const SizedBox(height: 16),
                   LayoutBuilder(
                     builder: (context, constraints) {
@@ -657,6 +755,53 @@ class _ProfileFormState extends State<ProfileForm> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildYearSelector(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final sortedYears = _yearlyRates.keys.toList()..sort();
+    final canRemove = _yearlyRates.length > 1;
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        ...sortedYears.map((year) {
+          final isSelected = year == _selectedYear;
+          return InputChip(
+            label: Text('$year'),
+            selected: isSelected,
+            onPressed: () => _switchYear(year),
+            deleteIcon: canRemove
+                ? Icon(Icons.close, size: 16, color: isSelected ? Colors.white70 : Colors.grey[600])
+                : null,
+            onDeleted: canRemove ? () => _removeYear(year) : null,
+            selectedColor: const Color(0xFF111111),
+            labelStyle: TextStyle(
+              color: isSelected ? Colors.white : const Color(0xFF111111),
+              fontWeight: FontWeight.w600,
+            ),
+            backgroundColor: Colors.grey[100],
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(
+                color: isSelected ? const Color(0xFF111111) : Colors.grey[300]!,
+              ),
+            ),
+          );
+        }),
+        ActionChip(
+          avatar: const Icon(Icons.add, size: 18),
+          label: Text(l10n.addYear),
+          onPressed: _addYear,
+          backgroundColor: Colors.grey[100],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: Colors.grey[300]!),
+          ),
+        ),
+      ],
     );
   }
 
