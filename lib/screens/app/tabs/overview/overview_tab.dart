@@ -34,8 +34,11 @@ class _OverviewTabState extends State<OverviewTab> {
   @override
   void initState() {
     super.initState();
-    _selectedRevenueYear = DateTime.now().year;
-    _selectedObligationsYear = DateTime.now().year;
+    final now = DateTime.now();
+    _dateFrom = DateTime(now.year, 1, 1);
+    _dateTo = now;
+    _selectedRevenueYear = now.year;
+    _selectedObligationsYear = now.year;
   }
 
   List<LedgerEntry> _filterEntriesByDateRange(List<LedgerEntry> entries) {
